@@ -1,26 +1,52 @@
+@import url("https://fonts.googleapis.com/css2?family=Righteous&family=Lexend:wght@300;400;500;600;700&display=swap");
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-noir: #000814;
+  --color-blanc: #fffcf9;
+  --color-bleu-fonce: #013bb8;
+  --color-bleu-clair: #47c3f6;
+  --color-rose: #ff9cd0;
+  --color-jaune: #ffe96e;
+  --color-orange: #ff4400;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--color-blanc);
+  --color-foreground: var(--color-noir);
+  --font-sans: "Lexend", sans-serif;
+  --font-titre: "Righteous", cursive;
+
+  --color-solimouv-noir: #000814;
+  --color-solimouv-blanc: #fffcf9;
+  --color-solimouv-bleu-fonce: #013bb8;
+  --color-solimouv-bleu-clair: #47c3f6;
+  --color-solimouv-rose: #ff9cd0;
+  --color-solimouv-jaune: #ffe96e;
+  --color-solimouv-orange: #ff4400;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-blanc);
+  color: var(--color-noir);
+  font-family: "Lexend", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Righteous", cursive;
 }
