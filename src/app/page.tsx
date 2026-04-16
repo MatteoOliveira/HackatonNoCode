@@ -3,46 +3,14 @@ import Link from "next/link";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import PWARegister from "@/components/PWARegister";
+import Countdown from "@/components/Countdown";
+import HeroImage from "@/components/HeroImage";
 
 export const metadata: Metadata = {
   title: "Solimouv' – Le festival du sport pour tous",
   description:
-    "Venez célébrer le sport inclusif avec nous ! Initiations, ateliers, rencontres... Le festival Solimouv' rassemble familles, jeunes, seniors, personnes réfugiées et tous ceux qui aiment le sport.",
+    "Parce que le mouvement est un droit. Rejoignez notre communauté inclusive pour bouger, partager et vous réapproprier l'espace sportif en toute bienveillance.",
 };
-
-const CHIFFRES_CLES = [
-  { valeur: "500+", label: "participants à l'édition 1" },
-  { valeur: "13", label: "associations partenaires" },
-  { valeur: "92%", label: "veulent revenir l'année prochaine" },
-  { valeur: "250", label: "personnes accompagnées chaque semaine" },
-];
-
-const PROGRAMMES = [
-  {
-    slug: "exile",
-    label: "Public exilé",
-    color: "var(--color-bleu-clair)",
-    description: "Le sport comme vecteur d'intégration et de lien social",
-  },
-  {
-    slug: "feminin",
-    label: "Public féminin",
-    color: "var(--color-rose)",
-    description: "L'accès au sport pour toutes les femmes, sans exception",
-  },
-  {
-    slug: "apa",
-    label: "Activité Physique Adaptée",
-    color: "var(--color-jaune)",
-    description: "Des pratiques adaptées à chaque corps et situation",
-  },
-  {
-    slug: "insertion",
-    label: "Insertion professionnelle",
-    color: "var(--color-orange)",
-    description: "Le sport comme levier vers l'emploi et la confiance en soi",
-  },
-];
 
 export default function HomePage() {
   return (
@@ -50,193 +18,163 @@ export default function HomePage() {
       <PWARegister />
       <Header />
 
-      <main>
-        {/* Hero */}
+      <main className="max-w-2xl mx-auto w-full">
+        {/* ── HERO ─────────────────────────────────────────────── */}
         <section
-          className="relative min-h-[90vh] flex flex-col items-center justify-center text-center px-4 py-20"
-          style={{ backgroundColor: "var(--color-noir)" }}
+          className="relative px-4 pt-8 pb-6 overflow-hidden"
+          style={{ backgroundColor: "var(--color-blanc)" }}
           aria-label="Présentation du festival"
         >
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div
-              className="absolute -top-20 -left-20 w-96 h-96 rounded-full opacity-10"
-              style={{ backgroundColor: "var(--color-bleu-clair)" }}
-            />
-            <div
-              className="absolute -bottom-20 -right-20 w-80 h-80 rounded-full opacity-10"
-              style={{ backgroundColor: "var(--color-rose)" }}
-            />
+          {/* Blob rose décoratif haut-droite */}
+          <div
+            className="absolute top-0 right-0 w-40 h-40 rounded-bl-full opacity-40 pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(circle at top right, var(--color-rose), transparent 70%)",
+            }}
+            aria-hidden="true"
+          />
+
+          {/* Badge "Ouvert à tous·tes" */}
+          <div className="mb-5">
+            <span
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium"
+              style={{ backgroundColor: "var(--color-rose)", color: "var(--color-blanc)" }}
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z" />
+              </svg>
+              Ouvert à tous·tes
+            </span>
           </div>
 
-          <span
-            className="inline-block px-4 py-1.5 rounded-full text-sm font-semibold mb-6"
+          {/* Titre principal */}
+          <h1
+            className="text-4xl leading-tight mb-5"
             style={{
-              backgroundColor: "var(--color-bleu-fonce)",
-              color: "var(--color-bleu-clair)",
+              fontFamily: "var(--font-titre)",
+              color: "var(--color-bleu-fonce)",
             }}
           >
-            2ème édition – 2026
-          </span>
-
-          <h1
-            className="text-5xl sm:text-7xl lg:text-8xl mb-6 leading-tight"
-            style={{ color: "var(--color-blanc)" }}
-          >
-            Solimouv&apos;
+            Le terrain
+            <br />
+            où chacun.e
+            <br />
+            est à sa place
           </h1>
 
+          {/* Sous-titre */}
           <p
-            className="text-xl sm:text-2xl font-light max-w-2xl mb-4"
-            style={{ color: "var(--color-bleu-clair)" }}
+            className="text-base leading-relaxed mb-6 opacity-80"
+            style={{ color: "var(--color-noir)" }}
           >
-            Le festival du sport pour tous
+            Parce que le mouvement est un droit. Rejoignez notre communauté inclusive
+            pour bouger, partager et vous réapproprier l&apos;espace sportif en toute
+            bienveillance.
           </p>
 
-          <p
-            className="text-base sm:text-lg max-w-xl mb-10 opacity-80"
-            style={{ color: "var(--color-blanc)" }}
-          >
-            Un événement inclusif organisé par Up Sport! qui réunit familles,
-            jeunes, seniors, personnes réfugiées et tous les amoureux du sport.
-          </p>
+          {/* Image hero */}
+          <HeroImage />
+        </section>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        {/* ── COUNTDOWN ────────────────────────────────────────── */}
+        <section className="py-6" aria-label="Compte à rebours avant le festival">
+          <Countdown />
+        </section>
+
+        {/* ── CTA PRINCIPAL ────────────────────────────────────── */}
+        <section className="px-4 pb-6" aria-label="Rejoindre le festival">
+          <Link
+            href="/programme"
+            className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl text-lg font-bold transition-transform active:scale-95"
+            style={{
+              backgroundColor: "var(--color-orange)",
+              color: "var(--color-blanc)",
+            }}
+          >
+            Rejoignez le terrain !
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </section>
+
+        {/* ── BOUTONS SECONDAIRES ──────────────────────────────── */}
+        <section className="px-4 pb-10" aria-label="Navigation secondaire">
+          <div className="grid grid-cols-2 gap-3">
+            <Link
+              href="/partenaires"
+              className="flex flex-col items-center gap-2 py-5 rounded-2xl border-2 font-semibold transition-colors active:scale-95"
+              style={{
+                borderColor: "var(--color-bleu-fonce)",
+                color: "var(--color-bleu-fonce)",
+                backgroundColor: "var(--color-blanc)",
+              }}
+            >
+              {/* Handshake icon */}
+              <svg
+                width="26"
+                height="26"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z" />
+                <path d="M12 5.36 8.87 8.5a2.13 2.13 0 0 0 0 3h0a2.13 2.13 0 0 0 3.02 0L12 11l.11.5a2.13 2.13 0 0 0 3.02 0h0a2.13 2.13 0 0 0 0-3L12 5.36z" />
+              </svg>
+              Nos partenaires
+            </Link>
+
             <Link
               href="/programme"
-              className="px-8 py-4 rounded-full text-lg font-semibold transition-transform hover:scale-105"
+              className="flex flex-col items-center gap-2 py-5 rounded-2xl border-2 font-semibold transition-colors active:scale-95"
               style={{
-                backgroundColor: "var(--color-orange)",
-                color: "var(--color-blanc)",
+                borderColor: "var(--color-bleu-fonce)",
+                color: "var(--color-bleu-fonce)",
+                backgroundColor: "var(--color-blanc)",
               }}
             >
-              Voir le programme
-            </Link>
-            <Link
-              href="/a-propos"
-              className="px-8 py-4 rounded-full text-lg font-semibold border-2 transition-transform hover:scale-105"
-              style={{
-                borderColor: "var(--color-blanc)",
-                color: "var(--color-blanc)",
-              }}
-            >
-              Découvrir l&apos;asso
-            </Link>
-          </div>
-
-          <div className="mt-16 text-sm opacity-50" style={{ color: "var(--color-blanc)" }}>
-            Centre Sportif Charles Moureu · Paris 13e
-          </div>
-        </section>
-
-        {/* Chiffres clés */}
-        <section
-          className="py-16 px-4"
-          style={{ backgroundColor: "var(--color-bleu-fonce)" }}
-          aria-label="Chiffres clés"
-        >
-          <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            {CHIFFRES_CLES.map((c) => (
-              <div key={c.label}>
-                <p
-                  className="text-4xl sm:text-5xl mb-2"
-                  style={{ fontFamily: "var(--font-titre)", color: "var(--color-jaune)" }}
-                >
-                  {c.valeur}
-                </p>
-                <p className="text-sm opacity-80" style={{ color: "var(--color-blanc)" }}>
-                  {c.label}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Programmes */}
-        <section className="py-20 px-4" aria-label="Nos programmes">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="text-4xl text-center mb-4" style={{ color: "var(--color-noir)" }}>
-              Nos programmes
-            </h2>
-            <p className="text-center opacity-60 mb-12 max-w-xl mx-auto">
-              Up Sport! accompagne 250 personnes par semaine à travers 4 programmes structurants.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {PROGRAMMES.map((p) => (
-                <Link
-                  key={p.slug}
-                  href={`/programme#${p.slug}`}
-                  className="group p-6 rounded-2xl border-2 transition-all hover:-translate-y-1 hover:shadow-lg"
-                  style={{ borderColor: p.color, backgroundColor: "var(--color-blanc)" }}
-                >
-                  <div
-                    className="w-3 h-3 rounded-full mb-4"
-                    style={{ backgroundColor: p.color }}
-                    aria-hidden="true"
-                  />
-                  <h3 className="text-lg mb-2 group-hover:underline" style={{ color: "var(--color-noir)" }}>
-                    {p.label}
-                  </h3>
-                  <p className="text-sm opacity-60">{p.description}</p>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* CTA Soutenir */}
-        <section
-          className="py-20 px-4"
-          style={{ backgroundColor: "var(--color-noir)" }}
-          aria-label="Soutenir le festival"
-        >
-          <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-4xl mb-4" style={{ color: "var(--color-blanc)" }}>
-              Soutenez Solimouv&apos;
-            </h2>
-            <p className="opacity-70 mb-8" style={{ color: "var(--color-blanc)" }}>
-              Chaque contribution aide Up Sport! à organiser un festival encore plus grand
-              et à accompagner davantage de personnes vers le sport.
-            </p>
-            <Link
-              href="/soutenir"
-              className="inline-block px-10 py-4 rounded-full text-xl font-semibold transition-transform hover:scale-105"
-              style={{ backgroundColor: "var(--color-orange)", color: "var(--color-blanc)" }}
-            >
-              Faire un don
-            </Link>
-          </div>
-        </section>
-
-        {/* Réseaux sociaux */}
-        <section className="py-16 px-4" aria-label="Suivre sur les réseaux">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl mb-4" style={{ color: "var(--color-noir)" }}>
-              Suivez l&apos;aventure
-            </h2>
-            <p className="opacity-60 mb-8">
-              Restez informés des dernières actualités de Solimouv&apos; et d&apos;Up Sport!
-            </p>
-            <div className="flex justify-center gap-4 flex-wrap">
-              <a
-                href="https://www.instagram.com/solimouv.festival/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-6 py-3 rounded-full font-semibold transition-opacity hover:opacity-80"
-                style={{ backgroundColor: "var(--color-rose)", color: "var(--color-noir)" }}
+              {/* Trophy icon */}
+              <svg
+                width="26"
+                height="26"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
               >
-                @solimouv.festival
-              </a>
-              <a
-                href="https://www.instagram.com/unispourlesport/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-6 py-3 rounded-full font-semibold transition-opacity hover:opacity-80"
-                style={{ backgroundColor: "var(--color-bleu-clair)", color: "var(--color-noir)" }}
-              >
-                @unispourlesport
-              </a>
-            </div>
+                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+                <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+                <path d="M4 22h16" />
+                <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+                <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+                <path d="M18 2H6v7a6 6 0 0 0 12 0V2z" />
+              </svg>
+              Nos défis !
+            </Link>
           </div>
         </section>
       </main>
