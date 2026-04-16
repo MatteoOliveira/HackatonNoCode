@@ -47,6 +47,15 @@ main (v0.1 à venir)
         └── feature/seo-sitemap ✅ merged
 ```
 
+**Intégration maquette (feature/integration-home)**
+- Header : logo Solimouv' orange, icône user SVG, hamburger animé avec drawer mobile
+- Hero : badge rose "Ouvert à tous·tes", titre bleu foncé Righteous 4xl, blob rose décoratif top-right
+- Composant `HeroImage` (client) : affiche photo ou fallback emoji si image absente
+- Composant `Countdown` (client) : compte à rebours live vers le 11 juillet 2026, blocs roses
+- CTA orange plein-largeur "Rejoignez le terrain !"
+- 2 boutons grid bleu bordure : "Nos partenaires" + "Nos défis !"
+- Footer : fond gris clair, "Up Sport!" orange, liens avec icônes SVG
+
 ### Prochaines étapes
 - [ ] Branche `feature/supabase-integration` : connexion DB réelle, tables, RLS
 - [ ] Branche `feature/admin-dashboard` : CRUD quiz, gestion programme (Brique E)
