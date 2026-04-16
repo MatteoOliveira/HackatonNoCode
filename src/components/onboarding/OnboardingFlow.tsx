@@ -16,7 +16,12 @@ const TOTAL = 6;
 function isStepValid(step: number, data: OnboardingData): boolean {
   switch (step) {
     case 1:
-      return data.pseudo.trim() !== "" && data.email.trim() !== "" && data.password.length >= 6;
+      return (
+        data.pseudo.trim() !== "" &&
+        data.email.trim() !== "" &&
+        data.password.length >= 6 &&
+        data.password === data.confirmPassword
+      );
     case 2:
       return data.pronouns !== "";
     case 3:
@@ -39,6 +44,7 @@ export default function OnboardingFlow() {
     pseudo: "",
     email: "",
     password: "",
+    confirmPassword: "",
     pronouns: "",
     pratique: "",
     besoin: "",
