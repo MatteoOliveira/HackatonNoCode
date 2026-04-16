@@ -2,6 +2,7 @@ export interface OnboardingData {
   pseudo: string;
   email: string;
   password: string;
+  confirmPassword: string;
   pronouns: string;
   pratique: string;
   besoin: string;
