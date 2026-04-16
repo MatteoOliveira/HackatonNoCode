@@ -1,213 +1,252 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
-  title: "À Propos – Up Sport! & Solimouv'",
+  title: "À propos – Solimouv'",
   description:
-    "Découvrez Up Sport!, association fondée en 2016 qui rend le sport accessible à tous. L'histoire, les valeurs et la vision du festival Solimouv'.",
+    "Solimouv, festival du sport inclusif organisé par Up Sport et ses associations partenaires au Centre Sportif Charles Moureu, Paris 13e.",
 };
 
-const TIMELINE = [
-  { annee: "2016", event: "Création d'Up Sport! à Paris, pour rendre le sport accessible à tous" },
-  { annee: "2018", event: "Lancement du programme public exilé – le sport comme outil d'intégration" },
-  { annee: "2020", event: "Développement du programme APA (Activité Physique Adaptée)" },
-  { annee: "2022", event: "250 personnes accompagnées par semaine, 30+ séances hebdomadaires" },
-  { annee: "2025", event: "1ère édition du festival Solimouv' – 500 participants, 13 associations" },
-  { annee: "2026", event: "2ème édition Solimouv' – plus grand, plus inclusif, plus fort" },
+const OBJECTIFS = [
+  "Encourager l'inclusion par le sport en brisant les barrières sociales, culturelles et physiques, et rendre l'Activité Physique et Sportive accessible à tous, quels que soient l'âge, le niveau, le genre ou la condition physique.",
+  "Créer du lien en favorisant la rencontre entre différents publics et acteurs engagés, et démontrer que le sport peut être un puissant outil de bien-être, d'émancipation et de cohésion sociale.",
+  "Mettre en lumière les associations et projets solidaires qui œuvrent, au quotidien, pour un sport plus accessible et plus représentatif de la diversité de notre société.",
 ];
 
-const VALEURS = [
-  { label: "Solidarité", color: "var(--color-bleu-clair)", description: "S'entraider, partager, avancer ensemble" },
-  { label: "Mixité", color: "var(--color-rose)", description: "Accueillir toutes les origines, genres, générations" },
-  { label: "Citoyenneté", color: "var(--color-jaune)", description: "Le sport comme école du vivre-ensemble" },
-  { label: "Bienveillance", color: "var(--color-orange)", description: "Un espace safe et inclusif pour tous" },
+const ENGAGEMENTS = [
+  "Promouvoir une accessibilité universelle à la pratique sportive",
+  "Favoriser la mixité sociale et intergénérationnelle",
+  "Soutenir l'inclusion des personnes en situation de handicap",
+  "Promouvoir la tolérance envers tous les parcours",
+  "Lutter contre toutes les formes de discrimination",
+  "Sensibiliser aux bienfaits du mouvement sur la santé, le bien-être et l'épanouissement",
 ];
+
+const STATS_MOBILISATION = [
+  { valeur: "500+", label: "participant·e·s réunis sur un week-end" },
+  { valeur: "40",   label: "bénévoles mobilisés, formés et engagés le jour J" },
+  { valeur: "15",   label: "associations et fondations partenaires" },
+];
+
+const STATS_RESULTATS = [
+  { pct: "73 %", label: "ont exprimé un sentiment renforcé d'inclusion et de bienveillance" },
+  { pct: "85 %", label: "ont découvert une nouvelle discipline ou une nouvelle association" },
+  { pct: "92 %", label: "se sont déclarés prêts à revenir pour une prochaine édition" },
+];
+
+/* ── Blocs réutilisables ── */
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <h2
+      className="text-xl font-bold mb-3"
+      style={{ color: "var(--color-noir)" }}
+    >
+      {children}
+    </h2>
+  );
+}
+
+function Paragraph({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-sm leading-relaxed mb-4 opacity-70" style={{ color: "var(--color-noir)" }}>
+      {children}
+    </p>
+  );
+}
+
+function Divider() {
+  return <div className="my-6 h-px" style={{ backgroundColor: "#e5e7eb" }} />;
+}
 
 export default function AProposPage() {
   return (
     <>
       <Header />
 
-      <main>
-        {/* Hero */}
-        <section
-          className="py-24 px-4 text-center"
-          style={{ backgroundColor: "var(--color-bleu-fonce)" }}
-          aria-label="À propos d'Up Sport!"
+      <main
+        className="max-w-2xl mx-auto w-full px-4 pt-8 pb-16"
+        style={{ backgroundColor: "var(--color-blanc)" }}
+      >
+        {/* ── Titre ── */}
+        <h1
+          className="text-4xl font-bold leading-tight mb-6"
+          style={{ fontFamily: "var(--font-titre)", color: "var(--color-orange)" }}
         >
-          <h1 className="text-5xl sm:text-6xl mb-4" style={{ color: "var(--color-blanc)" }}>
-            À Propos
-          </h1>
-          <p className="text-xl max-w-2xl mx-auto opacity-80" style={{ color: "var(--color-bleu-clair)" }}>
-            Up Sport! & le festival Solimouv'
-          </p>
-        </section>
+          À propos de nous
+        </h1>
 
-        {/* L'association */}
-        <section className="py-20 px-4" aria-label="L'association Up Sport!">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-4xl mb-6" style={{ color: "var(--color-noir)" }}>
-              Up Sport!
-            </h2>
-            <div className="grid md:grid-cols-2 gap-8">
-              <div>
-                <p className="text-lg leading-relaxed opacity-80 mb-4">
-                  Up Sport! est une association sportive parisienne fondée en <strong>2016</strong>,
-                  œuvrant auprès des personnes en situation de vulnérabilité sociale. Sa mission :
-                  rendre le sport accessible à toutes et tous, quels que soient le genre,
-                  l&apos;origine sociale ou géographique, le parcours de vie.
-                </p>
-                <p className="leading-relaxed opacity-80">
-                  L&apos;association accompagne en moyenne{" "}
-                  <strong style={{ color: "var(--color-bleu-fonce)" }}>250 personnes par semaine</strong>{" "}
-                  à travers une trentaine de séances hebdomadaires.
-                </p>
-                <a
-                  href="https://www.unispourlesport.paris/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block mt-6 px-6 py-3 rounded-full font-semibold transition-opacity hover:opacity-80"
-                  style={{ backgroundColor: "var(--color-bleu-fonce)", color: "var(--color-blanc)" }}
-                >
-                  Visiter le site d&apos;Up Sport!
-                </a>
-              </div>
-              <div className="space-y-4">
-                {[
-                  { label: "250", sublabel: "personnes accompagnées / semaine" },
-                  { label: "30+", sublabel: "séances hebdomadaires" },
-                  { label: "4", sublabel: "programmes structurants" },
-                  { label: "2016", sublabel: "année de création" },
-                ].map((s) => (
-                  <div
-                    key={s.sublabel}
-                    className="flex items-center gap-4 p-4 rounded-xl"
-                    style={{ backgroundColor: "var(--color-noir)" }}
-                  >
-                    <span
-                      className="text-3xl"
-                      style={{ fontFamily: "var(--font-titre)", color: "var(--color-jaune)" }}
-                    >
-                      {s.label}
-                    </span>
-                    <span className="text-sm opacity-70" style={{ color: "var(--color-blanc)" }}>
-                      {s.sublabel}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* ── Intro ── */}
+        <Paragraph>
+          Solimouv, festival du sport inclusif et pour tous, s&apos;inscrit pleinement dans
+          la continuité des actions menées par Up Sport et par toutes les associations qui
+          nous ont rejoint sur le projet. L&apos;évènement aura lieu à nouveau au Centre
+          Sportif Charles Moureu dans le 13<sup>e</sup> arrondissement de Paris.
+        </Paragraph>
+        <Paragraph>
+          Convaincu que le sport doit être un droit, le collectif d&apos;associations a pour
+          ambition de faire de Solimouv une journée inclusive, festive et fédératrice où
+          bénévoles, visiteurs et associations se retrouvent autour d&apos;une vision commune :
+          faire du sport un levier de cohésion sociale et de transformation positive.
+        </Paragraph>
+        <Paragraph>
+          Pensé comme un espace ouvert à toutes et tous — minorités, personnes LGBTQIA+,
+          seniors, jeunes, personnes en situation de handicap, personnes exilées, familles
+          et publics éloignés de la pratique sportive — le festival incarne les valeurs
+          fondatrices de l&apos;organisation : inclusion, diversité, solidarité et accès universel
+          à l&apos;Activité Physique et Sportive.
+        </Paragraph>
+        <Paragraph>
+          Solimouv&apos; donne ainsi une visibilité aux initiatives locales et entretient l&apos;élan
+          initié par les Jeux de Paris, afin que leur héritage social et inclusif perdure
+          dans le temps.
+        </Paragraph>
 
-        {/* Valeurs */}
-        <section
-          className="py-20 px-4"
-          style={{ backgroundColor: "var(--color-noir)" }}
-          aria-label="Nos valeurs"
+        <Divider />
+
+        {/* ── Tables rondes ── */}
+        <SectionTitle>Tables rondes</SectionTitle>
+        <Paragraph>
+          Pour cette nouvelle édition, le festival est complété par une série de tables
+          rondes qui se dérouleront entre le 17 avril et le 5 juin, veille du festival.
+          Celles-ci réuniront enseignants chercheurs, acteurs de terrain, collectivités
+          territoriales, experts, décideurs publics et privés pour débattre des enjeux
+          « sport &amp; vulnérabilités ».
+        </Paragraph>
+
+        <Divider />
+
+        {/* ── Ambition ── */}
+        <p
+          className="text-xs font-bold tracking-widest mb-4 uppercase"
+          style={{ color: "var(--color-orange)" }}
         >
-          <div className="max-w-5xl mx-auto">
-            <h2 className="text-4xl text-center mb-12" style={{ color: "var(--color-blanc)" }}>
-              Nos valeurs
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {VALEURS.map((v) => (
-                <div
-                  key={v.label}
-                  className="p-6 rounded-2xl text-center"
-                  style={{ backgroundColor: v.color }}
-                >
-                  <h3
-                    className="text-xl mb-2"
-                    style={{ color: "var(--color-noir)", fontFamily: "var(--font-titre)" }}
-                  >
-                    {v.label}
-                  </h3>
-                  <p className="text-sm opacity-80" style={{ color: "var(--color-noir)" }}>
-                    {v.description}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+          L&apos;ambition du festival
+        </p>
 
-        {/* Chronologie */}
-        <section className="py-20 px-4" aria-label="Chronologie de l'association">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-4xl mb-12 text-center" style={{ color: "var(--color-noir)" }}>
-              Notre histoire
-            </h2>
-            <ol className="relative border-l-2" style={{ borderColor: "var(--color-bleu-fonce)" }}>
-              {TIMELINE.map((item, i) => (
-                <li key={i} className="mb-10 ml-6">
-                  <span
-                    className="absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold"
-                    style={{
-                      backgroundColor: "var(--color-bleu-fonce)",
-                      color: "var(--color-blanc)",
-                    }}
-                  >
-                    {i + 1}
-                  </span>
-                  <time
-                    className="block text-sm font-semibold mb-1"
-                    style={{ color: "var(--color-bleu-fonce)" }}
-                  >
-                    {item.annee}
-                  </time>
-                  <p className="opacity-80">{item.event}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
+        {/* Objectifs */}
+        <SectionTitle>🎯 Nos objectifs</SectionTitle>
+        <ul className="mb-6 space-y-3">
+          {OBJECTIFS.map((obj, i) => (
+            <li key={i} className="flex gap-3">
+              <span
+                className="mt-1.5 w-2 h-2 rounded-full shrink-0"
+                style={{ backgroundColor: "var(--color-orange)" }}
+                aria-hidden="true"
+              />
+              <p className="text-sm leading-relaxed opacity-70" style={{ color: "var(--color-noir)" }}>
+                {obj}
+              </p>
+            </li>
+          ))}
+        </ul>
 
-        {/* Solimouv festival */}
-        <section
-          className="py-20 px-4"
-          style={{ backgroundColor: "var(--color-bleu-fonce)" }}
-          aria-label="Le festival Solimouv'"
-        >
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl mb-6" style={{ color: "var(--color-blanc)" }}>
-              Le festival Solimouv&apos;
-            </h2>
-            <p className="text-lg leading-relaxed opacity-80 mb-8 max-w-2xl mx-auto" style={{ color: "var(--color-blanc)" }}>
-              Solimouv&apos; est le festival du sport pour tous, organisé par Up Sport! et un collectif
-              d&apos;associations parisiennes. La 1ère édition (12 juillet 2025, Centre Sportif Charles Moureu)
-              a rassemblé plus de 500 participants, 13 associations partenaires et une quarantaine de bénévoles.
-            </p>
-            <div className="grid grid-cols-3 gap-6 mb-10">
-              {[
-                { pct: "92%", label: "souhaitent revenir" },
-                { pct: "85%", label: "ont découvert de nouvelles asso" },
-                { pct: "78%", label: "sentiment d'inclusion renforcé" },
-              ].map((s) => (
-                <div key={s.label}>
-                  <p
-                    className="text-4xl mb-1"
-                    style={{ fontFamily: "var(--font-titre)", color: "var(--color-jaune)" }}
-                  >
-                    {s.pct}
-                  </p>
-                  <p className="text-sm opacity-70" style={{ color: "var(--color-blanc)" }}>
-                    {s.label}
-                  </p>
-                </div>
-              ))}
-            </div>
-            <Link
-              href="/programme"
-              className="inline-block px-8 py-4 rounded-full font-semibold transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "var(--color-orange)", color: "var(--color-blanc)" }}
+        {/* Engagements */}
+        <SectionTitle>🤝 Nos engagements</SectionTitle>
+        <ul className="mb-6 space-y-2">
+          {ENGAGEMENTS.map((eng, i) => (
+            <li key={i} className="flex gap-3">
+              <span
+                className="mt-1.5 w-2 h-2 rounded-full shrink-0"
+                style={{ backgroundColor: "var(--color-bleu-fonce)" }}
+                aria-hidden="true"
+              />
+              <p className="text-sm leading-relaxed opacity-70" style={{ color: "var(--color-noir)" }}>
+                {eng}
+              </p>
+            </li>
+          ))}
+        </ul>
+
+        <Paragraph>
+          Solimouv fédère un collectif de 15 associations et fondations engagées sur des
+          thématiques complémentaires liées à la lutte contre les discriminations et à
+          l&apos;accès au sport pour tous.
+        </Paragraph>
+
+        <Divider />
+
+        {/* ── Impact ── */}
+        <SectionTitle>✊ Notre impact</SectionTitle>
+        <p className="text-xs opacity-50 mb-5" style={{ color: "var(--color-noir)" }}>
+          Les chiffres ci-dessous correspondent à la première édition du festival, organisée
+          en 2025 au Centre Sportif Charles Moureu.
+        </p>
+
+        {/* Mobilisation */}
+        <h3 className="text-base font-bold mb-3" style={{ color: "var(--color-noir)" }}>
+          Une mobilisation forte
+        </h3>
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          {STATS_MOBILISATION.map((s) => (
+            <div
+              key={s.valeur}
+              className="rounded-2xl p-4 text-center"
+              style={{ backgroundColor: "var(--color-bleu-fonce)" }}
             >
-              Voir le programme 2026
-            </Link>
-          </div>
-        </section>
+              <p
+                className="text-2xl font-bold mb-1"
+                style={{ fontFamily: "var(--font-titre)", color: "var(--color-jaune)" }}
+              >
+                {s.valeur}
+              </p>
+              <p className="text-xs leading-tight opacity-80" style={{ color: "var(--color-blanc)" }}>
+                {s.label}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Public diversifié */}
+        <h3 className="text-base font-bold mb-2" style={{ color: "var(--color-noir)" }}>
+          Un public réellement diversifié
+        </h3>
+        <Paragraph>
+          Familles, promeneurs du samedi, jeunes, seniors, personnes en situation de
+          précarité, réfugié·e·s, personnes LGBTQIA+, personnes en situation de handicap
+          physique ou mental : l&apos;ensemble des publics visés était représenté, dans un cadre
+          bienveillant et sans distinction.
+        </Paragraph>
+
+        {/* Résultats mesurables */}
+        <h3 className="text-base font-bold mb-3" style={{ color: "var(--color-noir)" }}>
+          Des résultats mesurables
+        </h3>
+        <div className="space-y-3 mb-6">
+          {STATS_RESULTATS.map((s) => (
+            <div
+              key={s.pct}
+              className="flex items-center gap-4 p-4 rounded-2xl"
+              style={{ backgroundColor: "#f5f5f5" }}
+            >
+              <span
+                className="text-2xl font-bold shrink-0"
+                style={{ fontFamily: "var(--font-titre)", color: "var(--color-orange)" }}
+              >
+                {s.pct}
+              </span>
+              <p className="text-sm leading-snug opacity-70" style={{ color: "var(--color-noir)" }}>
+                {s.label}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <Paragraph>
+          Ces résultats confirment que Solimouv répond à un besoin réel : créer un espace
+          où la pratique sportive devient un vecteur de rencontre, de visibilité et de
+          transformation sociale.
+        </Paragraph>
+
+        {/* Note programme */}
+        <div
+          className="rounded-2xl p-4 text-center"
+          style={{ backgroundColor: "var(--color-jaune)" }}
+        >
+          <p className="text-sm font-semibold" style={{ color: "var(--color-noir)" }}>
+            🎉 Le planning des activités sportives sera accessible prochainement !
+          </p>
+        </div>
       </main>
 
       <Footer />
