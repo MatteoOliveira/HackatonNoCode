@@ -91,7 +91,7 @@ export default function HomePage() {
         {/* ── CTA PRINCIPAL ────────────────────────────────────── */}
         <section className="px-4 pb-6" aria-label="Rejoindre le festival">
           <Link
-            href="/programme"
+            href="/inscription"
             className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl text-lg font-bold transition-transform active:scale-95"
             style={{
               backgroundColor: "var(--color-orange)",
