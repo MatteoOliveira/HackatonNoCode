@@ -16,8 +16,8 @@ const OPTIONS = [
   },
   {
     value: "ressourcer",
-    title: "Se ressourcer",
-    subtitle: "(douceur, respiration, bien-être)",
+    title: "Je recherche avant tout le calme et la douceur",
+    subtitle: "(respiration, bien-être, sérénité)",
     iconBg: "var(--color-bleu-fonce)",
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="white" aria-hidden="true">

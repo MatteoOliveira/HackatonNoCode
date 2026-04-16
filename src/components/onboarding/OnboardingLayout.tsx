@@ -40,7 +40,7 @@ export default function OnboardingLayout({
           className="text-lg"
           style={{ fontFamily: "var(--font-titre)", color: "var(--color-rose)" }}
         >
-          Onboarding
+          Ma bulle sportive
         </span>
         <div className="w-7" aria-hidden="true" />
       </div>

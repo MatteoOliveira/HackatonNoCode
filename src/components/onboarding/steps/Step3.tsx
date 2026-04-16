@@ -18,8 +18,8 @@ const OPTIONS = [
   },
   {
     value: "solo",
-    title: "En solo",
-    subtitle: "(pour avancer à mon propre rythme)",
+    title: "Je préfère progresser à mon propre rythme",
+    subtitle: "(à mon tempo, sans pression)",
     iconBg: "var(--color-bleu-fonce)",
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="white" aria-hidden="true">
@@ -41,7 +41,7 @@ export default function Step3({ data, update }: StepProps) {
       />
 
       <h2 className="text-2xl font-bold mb-2" style={{ color: "var(--color-noir)" }}>
-        Comment te sens-tu le plus à l&apos;aise pour pratiquer&nbsp;?
+        Ce qui me fait du bien en ce moment
       </h2>
       <p className="text-sm opacity-50 mb-6" style={{ color: "var(--color-noir)" }}>
         Peu importe ton choix, nos coachs veillent à ce que chacun·e trouve sa place
