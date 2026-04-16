@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Solimouv' PWA
 
-## Getting Started
+PWA de communication pour le festival du sport inclusif **Solimouv'** organisé par **Up Sport!** à Paris.
 
-First, run the development server:
+## Stack
+
+- **Next.js 16** (App Router, TypeScript)
+- **Tailwind CSS v4** (charte graphique custom)
+- **Supabase** (base de données, auth, realtime)
+- **Vercel** (hébergement, CI/CD)
+- **PWA** (manifest + service worker)
+
+## Lancer en local
 
 ```bash
+# 1. Cloner le repo
+git clone https://github.com/[org]/solimouv-pwa
+cd solimouv-pwa
+
+# 2. Installer les dépendances
+npm install
+
+# 3. Variables d'environnement
+cp .env.local.example .env.local
+# Renseigner SUPABASE_URL et SUPABASE_ANON_KEY
+
+# 4. Lancer le serveur de dev
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+L'application est disponible sur http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Pages
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| URL | Description |
+|---|---|
+| `/` | Accueil – Hero, chiffres clés, programmes, CTA |
+| `/a-propos` | À Propos – Up Sport!, chronologie, valeurs |
+| `/programme` | Programme – Ateliers avec jauge places, filtres |
+| `/partenaires` | Partenaires – Associations et institutionnels |
+| `/contact` | Contact – Formulaire + FAQ |
+| `/carte` | Carte Live – Plan SVG interactif du festival |
+| `/soutenir` | Soutenir – Campagne de don (en cours) |
 
-## Learn More
+## Déploiement Vercel
 
-To learn more about Next.js, take a look at the following resources:
+1. Importer le repo sur [vercel.com](https://vercel.com)
+2. Ajouter les variables d'environnement Supabase
+3. Ajouter `NEXT_PUBLIC_BASE_URL` = votre domaine Vercel
+4. Deploy automatique à chaque push sur `main`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Git Flow
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+main         → Production (tags vX.X)
+develop      → Intégration
+feature/*    → Développement par feature
+hotfix/*     → Correctifs urgents
+release/*    → Préparation release
+```
 
-## Deploy on Vercel
+## Documentation
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- [`documentation/chat.md`](./documentation/chat.md) – Journal de développement
+- [`documentation/technical.md`](./documentation/technical.md) – Architecture technique
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Charte graphique
+
+| Couleur | Hex | Usage |
+|---|---|---|
+| Noir | `#000814` | Fond, texte |
+| Blanc | `#fffcf9` | Fond page |
+| Bleu foncé | `#013bb8` | CTA, accents |
+| Bleu clair | `#47c3f6` | Pictos, liens |
+| Rose | `#ff9cd0` | Programme féminin |
+| Jaune | `#ffe96e` | Chiffres clés |
+| Orange | `#ff4400` | CTA urgence, alertes |
+
+Typographies : **Righteous** (titres) + **Lexend** (texte)
+
+## Client
+
+**Up Sport!** – Association sportive parisienne – [unispourlesport.paris](https://www.unispourlesport.paris/)
