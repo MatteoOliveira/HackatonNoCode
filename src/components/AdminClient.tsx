@@ -6,7 +6,7 @@ import Header from "@/components/layout/Header";
 import { createClient } from "@/lib/supabase/client";
 
 /* ── Types ── */
-type Tab = "programmes" | "partenaires" | "evenement" | "utilisateurs";
+type Tab = "programmes" | "partenaires" | "sports" | "evenement" | "utilisateurs";
 
 interface UserProfile {
   id: string;
@@ -31,7 +31,10 @@ interface Association {
   site_web?: string; contact_email?: string; couleur_theme: string; actif: boolean;
 }
 
-interface Sport { id: string; nom: string; }
+interface Sport {
+  id: string; nom: string; slug: string;
+  icon?: string; image_url?: string; tags?: string[];
+}
 
 interface Config { date_festival: string; lieu_festival: string; festival_actif: boolean; }
 
@@ -88,8 +91,18 @@ export default function AdminClient() {
   const [editDraft, setEditDraft]             = useState<{ titre: string; description: string; quote: string; tags: string; image_url: string; horaire_debut: string; horaire_fin: string; lieu: string; capacite_max: number; code_stand: string; sport_id: string; association_id: string } | null>(null);
   const [editImageFile, setEditImageFile]     = useState<File | null>(null);
   const [editImagePreview, setEditImagePreview] = useState<string>("");
+  const [uploadingEditImg, setUploadingEditImg] = useState(false);
   const [savingEdit, setSavingEdit]           = useState(false);
   const [errEdit, setErrEdit]                 = useState("");
+
+  /* Sports */
+  const [editingSport, setEditingSport]       = useState<string | null>(null);
+  const [sportDraft, setSportDraft]           = useState<{ nom: string; icon: string; image_url: string; tags: string } | null>(null);
+  const [sportImageFile, setSportImageFile]   = useState<File | null>(null);
+  const [sportImagePreview, setSportImagePreview] = useState<string>("");
+  const [uploadingSportImg, setUploadingSportImg] = useState(false);
+  const [savingSport, setSavingSport]         = useState(false);
+  const [errSport, setErrSport]               = useState("");
 
   /* Partenaires */
   const [partenaires, setPartenaires] = useState<Association[]>([]);
@@ -137,8 +150,8 @@ export default function AdminClient() {
       .order("horaire_debut")
       .then(({ data }) => data && setAteliers(data as unknown as Atelier[]));
 
-    supabase.from("sports").select("id, nom").order("nom")
-      .then(({ data }) => data && setSports(data));
+    supabase.from("sports").select("id, nom, slug, icon, image_url, tags").order("nom")
+      .then(({ data }) => data && setSports(data as unknown as Sport[]));
 
     supabase.from("associations").select("id, nom, slug, description, site_web, contact_email, couleur_theme, actif").order("nom")
       .then(({ data }) => { if (data) { setAssocs(data); setPartenaires(data); } });
@@ -164,16 +177,26 @@ export default function AdminClient() {
   }, [checking, denied]);
 
   /* ── Upload image ── */
-  async function uploadImage(file: File): Promise<string | null> {
-    setUploadingImg(true);
-    const supabase = createClient();
-    const ext  = file.name.split(".").pop();
-    const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const { error } = await supabase.storage.from("ateliers").upload(path, file, { upsert: true });
-    setUploadingImg(false);
-    if (error) { setErrA("Upload image : " + error.message); return null; }
-    const { data } = supabase.storage.from("ateliers").getPublicUrl(path);
-    return data.publicUrl;
+  async function uploadImage(
+    file: File,
+    setLoading: (v: boolean) => void,
+    setErr: (v: string) => void
+  ): Promise<string | null> {
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      const ext  = file.name.split(".").pop();
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from("ateliers").upload(path, file, { upsert: true });
+      if (error) { setErr("Upload image : " + error.message); return null; }
+      const { data } = supabase.storage.from("ateliers").getPublicUrl(path);
+      return data.publicUrl;
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "Erreur upload");
+      return null;
+    } finally {
+      setLoading(false);
+    }
   }
 
   function onImageChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -204,7 +227,7 @@ export default function AdminClient() {
 
     let finalImageUrl = newA.image_url || null;
     if (imageFile) {
-      finalImageUrl = await uploadImage(imageFile);
+      finalImageUrl = await uploadImage(imageFile, setUploadingImg, setErrA);
       if (!finalImageUrl && newA.image_url) finalImageUrl = newA.image_url;
     }
 
@@ -272,7 +295,7 @@ export default function AdminClient() {
 
     let finalImageUrl = editDraft.image_url || null;
     if (editImageFile) {
-      const uploaded = await uploadImage(editImageFile);
+      const uploaded = await uploadImage(editImageFile, setUploadingEditImg, setErrEdit);
       if (uploaded) finalImageUrl = uploaded;
     }
 
@@ -362,6 +385,58 @@ export default function AdminClient() {
     setUpdatingRole(null);
   }
 
+  /* ── Actions sports ── */
+  function startEditSport(s: Sport) {
+    if (editingSport === s.id) { setEditingSport(null); setSportDraft(null); return; }
+    setEditingSport(s.id);
+    setSportDraft({
+      nom:       s.nom,
+      icon:      s.icon ?? "",
+      image_url: s.image_url ?? "",
+      tags:      (s.tags ?? []).join(", "),
+    });
+    setSportImageFile(null);
+    setSportImagePreview(s.image_url ?? "");
+    setErrSport("");
+  }
+
+  function onSportImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSportImageFile(file);
+    setSportImagePreview(URL.createObjectURL(file));
+  }
+
+  async function updateSport(id: string) {
+    if (!sportDraft) return;
+    setErrSport(""); setSavingSport(true);
+    const supabase = createClient();
+
+    let finalImageUrl = sportDraft.image_url || null;
+    if (sportImageFile) {
+      finalImageUrl = await uploadImage(sportImageFile, setUploadingSportImg, setErrSport);
+      if (!finalImageUrl && sportDraft.image_url) finalImageUrl = sportDraft.image_url;
+    }
+
+    const tagsArray = sportDraft.tags.split(",").map((t) => t.trim()).filter(Boolean);
+
+    const { error } = await supabase.from("sports").update({
+      nom:       sportDraft.nom.trim(),
+      icon:      sportDraft.icon.trim() || null,
+      image_url: finalImageUrl,
+      tags:      tagsArray,
+    }).eq("id", id);
+
+    if (error) { setErrSport(error.message); setSavingSport(false); return; }
+
+    const { data } = await supabase.from("sports").select("id, nom, slug, icon, image_url, tags").order("nom");
+    if (data) setSports(data as unknown as Sport[]);
+
+    setEditingSport(null); setSportDraft(null);
+    setSportImageFile(null); setSportImagePreview("");
+    setSavingSport(false);
+  }
+
   /* ── Action config ── */
   async function saveConfig() {
     setErrC(""); setSavingC(true); setSavedC(false);
@@ -411,7 +486,7 @@ export default function AdminClient() {
 
         {/* ── Tabs ── */}
         <div className="flex gap-1 mb-6 p-1 rounded-xl" style={{ backgroundColor: "#f0f0f0" }}>
-          {([["programmes", "📅"], ["partenaires", "🤝"], ["evenement", "📍"], ["utilisateurs", "👥"]] as [Tab, string][]).map(([t, label]) => (
+          {([["programmes", "📅"], ["partenaires", "🤝"], ["sports", "🏅"], ["evenement", "📍"], ["utilisateurs", "👥"]] as [Tab, string][]).map(([t, label]) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -791,6 +866,105 @@ export default function AdminClient() {
                     </button>
                     <button onClick={() => deletePartenaire(p.id)} className="text-lg leading-none opacity-40 hover:opacity-100 transition-opacity" aria-label="Supprimer">🗑️</button>
                   </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════ TAB SPORTS ══════════════════ */}
+        {tab === "sports" && (
+          <div>
+            <p className="text-sm font-semibold mb-4" style={{ color: "var(--color-noir)" }}>
+              {sports.length} sport{sports.length > 1 ? "s" : ""} — cliquez ✏️ pour modifier nom, icône et image
+            </p>
+
+            <div className="flex flex-col gap-3">
+              {sports.map((s) => (
+                <div key={s.id} className="rounded-2xl overflow-hidden" style={{ backgroundColor: "#fff", boxShadow: "0 1px 6px rgba(0,0,0,0.06)" }}>
+                  {/* Ligne résumé */}
+                  <div className="flex items-center gap-3 px-4 py-3">
+                    {/* Miniature image */}
+                    <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 flex items-center justify-center text-2xl"
+                      style={{ backgroundColor: "#f0f0f0" }}>
+                      {s.image_url
+                        ? <img src={s.image_url} alt={s.nom} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        : (s.icon ?? "🏅")}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate" style={{ color: "var(--color-bleu-fonce)" }}>{s.nom}</p>
+                      <p className="text-xs opacity-40 truncate" style={{ color: "var(--color-noir)" }}>
+                        {(s.tags ?? []).map(t => `#${t}`).join(" ") || "Pas de tags"}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => startEditSport(s)}
+                      className="text-xs px-3 py-1.5 rounded-full font-medium shrink-0"
+                      style={{ backgroundColor: editingSport === s.id ? "var(--color-orange)" : "#fff3e0", color: editingSport === s.id ? "#fff" : "#e65100" }}
+                    >
+                      ✏️ Modifier
+                    </button>
+                  </div>
+
+                  {/* Formulaire édition */}
+                  {editingSport === s.id && sportDraft && (
+                    <div className="border-t px-4 py-4 flex flex-col gap-3" style={{ borderColor: "#f0f0f0", backgroundColor: "#fffbf5" }}>
+
+                      <Field label="Nom">
+                        <input className={INPUT} style={inputStyle} value={sportDraft.nom}
+                          onChange={(e) => setSportDraft((d) => d ? { ...d, nom: e.target.value } : d)} />
+                      </Field>
+
+                      <Field label="Icône (emoji)">
+                        <input className={INPUT} style={inputStyle} value={sportDraft.icon}
+                          onChange={(e) => setSportDraft((d) => d ? { ...d, icon: e.target.value } : d)}
+                          placeholder="🏀" maxLength={4} />
+                      </Field>
+
+                      <Field label="Image">
+                        <div className="flex flex-col gap-2">
+                          {sportImagePreview && (
+                            <div className="relative w-full rounded-xl overflow-hidden" style={{ aspectRatio: "16/9" }}>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={sportImagePreview} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                              <button type="button"
+                                onClick={() => { setSportImageFile(null); setSportImagePreview(""); setSportDraft((d) => d ? { ...d, image_url: "" } : d); }}
+                                className="absolute top-2 right-2 w-7 h-7 rounded-full text-xs flex items-center justify-center"
+                                style={{ backgroundColor: "rgba(0,0,0,0.5)", color: "#fff" }}>✕</button>
+                            </div>
+                          )}
+                          <label className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer text-sm font-medium"
+                            style={{ backgroundColor: "#f0f0f0", color: "var(--color-bleu-fonce)" }}>
+                            {uploadingSportImg ? "Upload en cours…" : "📷 Choisir une image"}
+                            <input type="file" accept="image/*" className="hidden"
+                              onChange={onSportImageChange} disabled={uploadingSportImg} />
+                          </label>
+                        </div>
+                      </Field>
+
+                      <Field label="Tags (séparés par des virgules)">
+                        <input className={INPUT} style={inputStyle} value={sportDraft.tags}
+                          onChange={(e) => setSportDraft((d) => d ? { ...d, tags: e.target.value } : d)}
+                          placeholder="handisport, intense, en-équipe" />
+                      </Field>
+
+                      {errSport && <p className="text-xs px-3 py-2 rounded-xl" style={{ backgroundColor: "#fdecea", color: "#c62828" }}>{errSport}</p>}
+
+                      <div className="flex gap-3">
+                        <button onClick={() => { setEditingSport(null); setSportDraft(null); }}
+                          className="flex-1 py-2.5 rounded-xl text-sm font-semibold border-2"
+                          style={{ borderColor: "#d1d5db", color: "var(--color-noir)" }}>
+                          Annuler
+                        </button>
+                        <button onClick={() => updateSport(s.id)}
+                          disabled={savingSport || uploadingSportImg || !sportDraft.nom}
+                          className="flex-1 py-2.5 rounded-xl text-sm font-bold disabled:opacity-40"
+                          style={{ backgroundColor: "var(--color-orange)", color: "#fff" }}>
+                          {savingSport ? "Enregistrement…" : "Enregistrer ✓"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
