@@ -17,7 +17,8 @@ interface UserProfile {
 }
 
 interface Atelier {
-  id: string; titre: string; description?: string;
+  id: string; titre: string; description?: string; quote?: string;
+  image_url?: string; tags?: string[];
   horaire_debut: string; horaire_fin: string;
   lieu: string; capacite_max: number; code_stand: string; actif: boolean;
   sport_id?: string; association_id?: string;
@@ -83,6 +84,12 @@ export default function AdminClient() {
   const [errA, setErrA]           = useState("");
   const [inscritsByAtelier, setInscritsByAtelier] = useState<Record<string, { count: number; users: { pseudo?: string; email?: string }[] }>>({});
   const [expandedAtelier, setExpandedAtelier] = useState<string | null>(null);
+  const [editingAtelier, setEditingAtelier]   = useState<string | null>(null);
+  const [editDraft, setEditDraft]             = useState<{ titre: string; description: string; quote: string; tags: string; image_url: string; horaire_debut: string; horaire_fin: string; lieu: string; capacite_max: number; code_stand: string; sport_id: string; association_id: string } | null>(null);
+  const [editImageFile, setEditImageFile]     = useState<File | null>(null);
+  const [editImagePreview, setEditImagePreview] = useState<string>("");
+  const [savingEdit, setSavingEdit]           = useState(false);
+  const [errEdit, setErrEdit]                 = useState("");
 
   /* Partenaires */
   const [partenaires, setPartenaires] = useState<Association[]>([]);
@@ -226,6 +233,77 @@ export default function AdminClient() {
     setNewA({ titre: "", description: "", quote: "", tags: "", image_url: "", horaire_debut: "", horaire_fin: "", lieu: "", capacite_max: 30, code_stand: "", sport_id: "", association_id: "", actif: true });
     setImageFile(null); setImagePreview("");
     setShowAddA(false); setSavingA(false);
+  }
+
+  function startEdit(a: Atelier) {
+    if (editingAtelier === a.id) { setEditingAtelier(null); setEditDraft(null); return; }
+    setEditingAtelier(a.id);
+    setEditDraft({
+      titre:          a.titre,
+      description:    a.description ?? "",
+      quote:          a.quote ?? "",
+      tags:           (a.tags ?? []).join(", "),
+      image_url:      a.image_url ?? "",
+      horaire_debut:  toDatetimeLocal(a.horaire_debut),
+      horaire_fin:    toDatetimeLocal(a.horaire_fin),
+      lieu:           a.lieu,
+      capacite_max:   a.capacite_max,
+      code_stand:     a.code_stand,
+      sport_id:       a.sport_id ?? "",
+      association_id: a.association_id ?? "",
+    });
+    setEditImageFile(null);
+    setEditImagePreview(a.image_url ?? "");
+    setErrEdit("");
+  }
+
+  function onEditImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setEditImageFile(file);
+    setEditImagePreview(URL.createObjectURL(file));
+    setEditDraft((d) => d ? { ...d, image_url: "" } : d);
+  }
+
+  async function updateAtelier(id: string) {
+    if (!editDraft) return;
+    setErrEdit(""); setSavingEdit(true);
+    const supabase = createClient();
+
+    let finalImageUrl = editDraft.image_url || null;
+    if (editImageFile) {
+      const uploaded = await uploadImage(editImageFile);
+      if (uploaded) finalImageUrl = uploaded;
+    }
+
+    const tagsArray = editDraft.tags.split(",").map((t) => t.trim()).filter(Boolean);
+
+    const { error } = await supabase.from("ateliers").update({
+      titre:          editDraft.titre.trim(),
+      description:    editDraft.description.trim() || null,
+      quote:          editDraft.quote.trim() || null,
+      image_url:      finalImageUrl,
+      tags:           tagsArray,
+      horaire_debut:  toISO(editDraft.horaire_debut),
+      horaire_fin:    toISO(editDraft.horaire_fin),
+      lieu:           editDraft.lieu.trim(),
+      capacite_max:   Number(editDraft.capacite_max),
+      code_stand:     editDraft.code_stand.trim().toUpperCase(),
+      sport_id:       editDraft.sport_id || null,
+      association_id: editDraft.association_id || null,
+    }).eq("id", id);
+
+    if (error) { setErrEdit(error.message); setSavingEdit(false); return; }
+
+    // Rafraîchir la liste
+    const { data } = await supabase.from("ateliers")
+      .select("id, titre, description, quote, image_url, tags, horaire_debut, horaire_fin, lieu, capacite_max, code_stand, actif, sport_id, association_id, sport:sport_id(nom), association:association_id(nom)")
+      .order("horaire_debut");
+    if (data) setAteliers(data as unknown as Atelier[]);
+
+    setEditingAtelier(null); setEditDraft(null);
+    setEditImageFile(null); setEditImagePreview("");
+    setSavingEdit(false);
   }
 
   async function deleteAtelier(id: string) {
@@ -470,6 +548,13 @@ export default function AdminClient() {
                         👥 Inscrits
                       </button>
                       <button
+                        onClick={() => startEdit(a)}
+                        className="text-xs px-2 py-1 rounded-full font-medium"
+                        style={{ backgroundColor: editingAtelier === a.id ? "var(--color-orange)" : "#fff3e0", color: editingAtelier === a.id ? "#fff" : "#e65100" }}
+                      >
+                        ✏️ Modifier
+                      </button>
+                      <button
                         onClick={() => toggleAtelier(a.id, a.actif)}
                         className="text-xs px-2 py-1 rounded-full font-medium"
                         style={{ backgroundColor: a.actif ? "#e8f5e9" : "#f0f0f0", color: a.actif ? "#2e7d32" : "#999" }}
@@ -479,6 +564,112 @@ export default function AdminClient() {
                       <button onClick={() => deleteAtelier(a.id)} className="text-lg leading-none opacity-40 hover:opacity-100 transition-opacity" aria-label="Supprimer">🗑️</button>
                     </div>
                   </div>
+
+                  {/* Panel édition */}
+                  {editingAtelier === a.id && editDraft && (
+                    <div className="border-t px-4 py-4 flex flex-col gap-3" style={{ borderColor: "#f0f0f0", backgroundColor: "#fffbf5" }}>
+                      <p className="text-xs font-bold" style={{ color: "var(--color-orange)" }}>✏️ Modifier le programme</p>
+
+                      <Field label="Titre *">
+                        <input className={INPUT} style={inputStyle} value={editDraft.titre}
+                          onChange={(e) => setEditDraft((d) => d ? { ...d, titre: e.target.value } : d)} />
+                      </Field>
+
+                      <Field label="Image de couverture">
+                        <div className="flex flex-col gap-2">
+                          {editImagePreview && (
+                            <div className="relative w-full rounded-xl overflow-hidden" style={{ aspectRatio: "16/9" }}>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={editImagePreview} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                              <button type="button" onClick={() => { setEditImageFile(null); setEditImagePreview(""); setEditDraft((d) => d ? { ...d, image_url: "" } : d); }}
+                                className="absolute top-2 right-2 w-7 h-7 rounded-full text-xs flex items-center justify-center"
+                                style={{ backgroundColor: "rgba(0,0,0,0.5)", color: "#fff" }}>✕</button>
+                            </div>
+                          )}
+                          <label className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer text-sm font-medium"
+                            style={{ backgroundColor: "#f0f0f0", color: "var(--color-bleu-fonce)" }}>
+                            {uploadingImg ? "Upload…" : "📷 Changer l'image"}
+                            <input type="file" accept="image/*" className="hidden" onChange={onEditImageChange} disabled={uploadingImg} />
+                          </label>
+                        </div>
+                      </Field>
+
+                      <Field label="Citation / Accroche">
+                        <textarea className={INPUT} style={{ ...inputStyle, resize: "none" }} rows={2} value={editDraft.quote}
+                          onChange={(e) => setEditDraft((d) => d ? { ...d, quote: e.target.value } : d)} />
+                      </Field>
+
+                      <Field label="Description">
+                        <textarea className={INPUT} style={{ ...inputStyle, resize: "none" }} rows={2} value={editDraft.description}
+                          onChange={(e) => setEditDraft((d) => d ? { ...d, description: e.target.value } : d)} />
+                      </Field>
+
+                      <Field label="Tags (séparés par des virgules)">
+                        <input className={INPUT} style={inputStyle} value={editDraft.tags}
+                          onChange={(e) => setEditDraft((d) => d ? { ...d, tags: e.target.value } : d)}
+                          placeholder="en-équipe, handisport, intense" />
+                      </Field>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <Field label="Début *">
+                          <input type="datetime-local" className={INPUT} style={inputStyle} value={editDraft.horaire_debut}
+                            onChange={(e) => setEditDraft((d) => d ? { ...d, horaire_debut: e.target.value } : d)} />
+                        </Field>
+                        <Field label="Fin *">
+                          <input type="datetime-local" className={INPUT} style={inputStyle} value={editDraft.horaire_fin}
+                            onChange={(e) => setEditDraft((d) => d ? { ...d, horaire_fin: e.target.value } : d)} />
+                        </Field>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <Field label="Lieu *">
+                          <input className={INPUT} style={inputStyle} value={editDraft.lieu}
+                            onChange={(e) => setEditDraft((d) => d ? { ...d, lieu: e.target.value } : d)} />
+                        </Field>
+                        <Field label="Code stand *">
+                          <input className={INPUT} style={inputStyle} value={editDraft.code_stand}
+                            onChange={(e) => setEditDraft((d) => d ? { ...d, code_stand: e.target.value } : d)} />
+                        </Field>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <Field label="Sport">
+                          <select className={INPUT} style={inputStyle} value={editDraft.sport_id}
+                            onChange={(e) => setEditDraft((d) => d ? { ...d, sport_id: e.target.value } : d)}>
+                            <option value="">— Aucun —</option>
+                            {sports.map((s) => <option key={s.id} value={s.id}>{s.nom}</option>)}
+                          </select>
+                        </Field>
+                        <Field label="Association">
+                          <select className={INPUT} style={inputStyle} value={editDraft.association_id}
+                            onChange={(e) => setEditDraft((d) => d ? { ...d, association_id: e.target.value } : d)}>
+                            <option value="">— Aucune —</option>
+                            {assocs.map((as) => <option key={as.id} value={as.id}>{as.nom}</option>)}
+                          </select>
+                        </Field>
+                      </div>
+
+                      <Field label="Capacité max">
+                        <input type="number" className={INPUT} style={inputStyle} value={editDraft.capacite_max} min={1}
+                          onChange={(e) => setEditDraft((d) => d ? { ...d, capacite_max: Number(e.target.value) } : d)} />
+                      </Field>
+
+                      {errEdit && <p className="text-xs px-3 py-2 rounded-xl" style={{ backgroundColor: "#fdecea", color: "#c62828" }}>{errEdit}</p>}
+
+                      <div className="flex gap-3">
+                        <button onClick={() => { setEditingAtelier(null); setEditDraft(null); }}
+                          className="flex-1 py-2.5 rounded-xl text-sm font-semibold border-2"
+                          style={{ borderColor: "#d1d5db", color: "var(--color-noir)" }}>
+                          Annuler
+                        </button>
+                        <button onClick={() => updateAtelier(a.id)} disabled={savingEdit || !editDraft.titre}
+                          className="flex-1 py-2.5 rounded-xl text-sm font-bold disabled:opacity-40"
+                          style={{ backgroundColor: "var(--color-orange)", color: "#fff" }}>
+                          {savingEdit ? "Enregistrement…" : "Enregistrer ✓"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Panel inscrits */}
                   {expandedAtelier === a.id && (
