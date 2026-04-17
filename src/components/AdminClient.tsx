@@ -96,7 +96,10 @@ export default function AdminClient() {
   /* Partenaires */
   const [partenaires, setPartenaires] = useState<Association[]>([]);
   const [showAddP, setShowAddP]       = useState(false);
-  const [newP, setNewP]               = useState({ nom: "", description: "", site_web: "", contact_email: "", couleur_theme: "#013bb8", actif: true });
+  const [newP, setNewP]               = useState({ nom: "", badge: "", description: "", tags: "", icon: "", site_web: "", contact_email: "", couleur_theme: "#013bb8", actif: true });
+  const [partImageFile, setPartImageFile]   = useState<File | null>(null);
+  const [partImagePreview, setPartImagePreview] = useState<string>("");
+  const [uploadingPartImg, setUploadingPartImg] = useState(false);
   const [savingP, setSavingP]         = useState(false);
   const [errP, setErrP]               = useState("");
 
@@ -332,14 +335,33 @@ export default function AdminClient() {
   }
 
   /* ── Actions partenaires ── */
+  function onPartImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPartImageFile(file);
+    setPartImagePreview(URL.createObjectURL(file));
+  }
+
   async function addPartenaire() {
     setErrP(""); setSavingP(true);
     const supabase = createClient();
     const slug = slugify(newP.nom);
+
+    let finalImageUrl: string | null = null;
+    if (partImageFile) {
+      finalImageUrl = await uploadImage(partImageFile, setUploadingPartImg, setErrP);
+    }
+
+    const tagsArray = newP.tags.split(",").map((t) => t.trim()).filter(Boolean);
+
     const { error } = await supabase.from("associations").insert({
       nom:           newP.nom.trim(),
       slug,
+      badge:         newP.badge.trim() || null,
       description:   newP.description.trim() || null,
+      tags:          tagsArray,
+      icon:          newP.icon.trim() || null,
+      image_url:     finalImageUrl,
       site_web:      newP.site_web.trim() || null,
       contact_email: newP.contact_email.trim() || null,
       couleur_theme: newP.couleur_theme,
@@ -348,7 +370,8 @@ export default function AdminClient() {
     if (error) { setErrP(error.message); setSavingP(false); return; }
     const { data } = await supabase.from("associations").select("id, nom, slug, description, site_web, contact_email, couleur_theme, actif").order("nom");
     if (data) { setAssocs(data); setPartenaires(data); }
-    setNewP({ nom: "", description: "", site_web: "", contact_email: "", couleur_theme: "#013bb8", actif: true });
+    setNewP({ nom: "", badge: "", description: "", tags: "", icon: "", site_web: "", contact_email: "", couleur_theme: "#013bb8", actif: true });
+    setPartImageFile(null); setPartImagePreview("");
     setShowAddP(false); setSavingP(false);
   }
 
@@ -749,11 +772,40 @@ export default function AdminClient() {
             {showAddP && (
               <div className="rounded-2xl p-4 mb-5 flex flex-col gap-3" style={{ backgroundColor: "#fff", boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}>
                 <h3 className="text-sm font-bold" style={{ color: "var(--color-bleu-fonce)" }}>Nouveau partenaire</h3>
+
+                <Field label="Image de couverture">
+                  <div className="flex flex-col gap-2">
+                    {partImagePreview && (
+                      <div className="relative w-full rounded-xl overflow-hidden" style={{ aspectRatio: "16/9" }}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={partImagePreview} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        <button type="button" onClick={() => { setPartImageFile(null); setPartImagePreview(""); }}
+                          className="absolute top-2 right-2 w-7 h-7 rounded-full text-xs flex items-center justify-center"
+                          style={{ backgroundColor: "rgba(0,0,0,0.5)", color: "#fff" }}>✕</button>
+                      </div>
+                    )}
+                    <label className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer text-sm font-medium"
+                      style={{ backgroundColor: "#f0f0f0", color: "var(--color-bleu-fonce)" }}>
+                      {uploadingPartImg ? "Upload…" : "📷 Choisir une image"}
+                      <input type="file" accept="image/*" className="hidden" onChange={onPartImageChange} disabled={uploadingPartImg} />
+                    </label>
+                  </div>
+                </Field>
+
                 <Field label="Nom *">
                   <input className={INPUT} style={inputStyle} value={newP.nom} onChange={(e) => setNewP((n) => ({ ...n, nom: e.target.value }))} placeholder="Ex: Yoga Solidaire Paris" />
                 </Field>
+                <Field label="Badge (ex: Expert handisport)">
+                  <input className={INPUT} style={inputStyle} value={newP.badge} onChange={(e) => setNewP((n) => ({ ...n, badge: e.target.value }))} placeholder="Ex: Santé mentale & bien-être" />
+                </Field>
                 <Field label="Description">
                   <textarea className={INPUT} style={{ ...inputStyle, resize: "none" }} rows={3} value={newP.description} onChange={(e) => setNewP((n) => ({ ...n, description: e.target.value }))} placeholder="Présentation de l'association..." />
+                </Field>
+                <Field label="Tags (séparés par des virgules)">
+                  <input className={INPUT} style={inputStyle} value={newP.tags} onChange={(e) => setNewP((n) => ({ ...n, tags: e.target.value }))} placeholder="InclusionMoteur, EspritDequipe" />
+                </Field>
+                <Field label="Icône (emoji)">
+                  <input className={INPUT} style={inputStyle} value={newP.icon} onChange={(e) => setNewP((n) => ({ ...n, icon: e.target.value }))} placeholder="🏀" maxLength={4} />
                 </Field>
                 <Field label="Site web">
                   <input className={INPUT} style={inputStyle} value={newP.site_web} onChange={(e) => setNewP((n) => ({ ...n, site_web: e.target.value }))} placeholder="https://..." />
@@ -761,7 +813,7 @@ export default function AdminClient() {
                 <Field label="Email contact">
                   <input type="email" className={INPUT} style={inputStyle} value={newP.contact_email} onChange={(e) => setNewP((n) => ({ ...n, contact_email: e.target.value }))} placeholder="contact@asso.fr" />
                 </Field>
-                <Field label="Couleur thème">
+                <Field label="Couleur thème (fond carte)">
                   <div className="flex items-center gap-3">
                     <input type="color" value={newP.couleur_theme} onChange={(e) => setNewP((n) => ({ ...n, couleur_theme: e.target.value }))} className="w-10 h-10 rounded-lg border-2 cursor-pointer" style={{ borderColor: "#d1d5db" }} />
                     <span className="text-sm font-mono opacity-60" style={{ color: "var(--color-noir)" }}>{newP.couleur_theme}</span>

@@ -1,100 +1,101 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
+import type { PartenaireData } from "@/app/partenaires/page";
 
-interface Partenaire {
-  id: string;
-  nom: string;
-  badge: string;
-  description: string;
-  tags: string[];
-  iconBg: string;
-  iconEmoji: string;
-  imageFallbackBg: string;
-  imageFallbackEmoji: string;
-  imageAlt: string;
-}
+const TAG_COLORS = [
+  { bg: "var(--color-bleu-fonce)", color: "#fff" },
+  { bg: "var(--color-orange)",     color: "#fff" },
+  { bg: "var(--color-rose)",       color: "#fff" },
+];
 
-export default function PartenaireCard({ partenaire: p }: { partenaire: Partenaire }) {
-  const [imgError, setImgError] = useState(false);
+export default function PartenaireCard({ partenaire: p }: { partenaire: PartenaireData }) {
+  const [imgErr, setImgErr] = useState(false);
+  const initial = p.nom[0]?.toUpperCase() ?? "?";
+  const tags = p.tags ?? [];
 
   return (
-    <article className="mb-6 mx-4 rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: "#fff" }}>
-      {/* ── Photo ── */}
-      <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
-        <div
-          className="absolute inset-0 flex items-center justify-center text-6xl"
-          style={{ backgroundColor: p.imageFallbackBg }}
-          aria-hidden="true"
-        >
-          {p.imageFallbackEmoji}
+    <article
+      className="rounded-2xl overflow-hidden"
+      style={{ backgroundColor: "#fff", boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}
+    >
+      {/* ── Image ── */}
+      <div
+        className="relative w-full"
+        style={{ aspectRatio: "16/9", backgroundColor: p.couleur_theme ?? "var(--color-bleu-fonce)" }}
+      >
+        {/* Fallback coloré */}
+        <div className="absolute inset-0 flex items-center justify-center text-6xl" aria-hidden="true">
+          {p.icon ?? "🤝"}
         </div>
-        {!imgError && (
-          <Image
-            src={`/images/partenaire-${p.id}.jpg`}
-            alt={p.imageAlt}
-            fill
-            className="object-cover relative z-10"
-            onError={() => setImgError(true)}
+
+        {p.image_url && !imgErr && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={p.image_url}
+            alt={p.nom}
+            onError={() => setImgErr(true)}
+            style={{
+              position: "absolute", inset: 0,
+              width: "100%", height: "100%",
+              objectFit: "cover", zIndex: 1,
+            }}
           />
         )}
       </div>
 
       {/* ── Contenu ── */}
-      <div className="p-4">
+      <div className="p-4 flex flex-col gap-3">
+
         {/* Nom + badge */}
-        <div className="flex items-start justify-between gap-2 mb-3">
+        <div className="flex items-start justify-between gap-3">
           <h2
             className="text-xl font-bold leading-tight"
-            style={{ color: "var(--color-bleu-fonce)" }}
+            style={{ color: "var(--color-noir)" }}
           >
             {p.nom}
           </h2>
-          <span
-            className="shrink-0 text-xs font-medium px-3 py-1 rounded-full mt-0.5"
-            style={{
-              backgroundColor: "var(--color-rose)",
-              color: "var(--color-blanc)",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {p.badge}
-          </span>
+          {p.badge && (
+            <span
+              className="shrink-0 text-xs font-semibold px-3 py-1 rounded-full mt-0.5 whitespace-nowrap"
+              style={{ backgroundColor: "var(--color-rose)", color: "#fff" }}
+            >
+              {p.badge}
+            </span>
+          )}
         </div>
 
         {/* Description */}
-        <p
-          className="text-sm leading-relaxed mb-4 opacity-70"
-          style={{ color: "var(--color-noir)" }}
-        >
-          {p.description}
-        </p>
+        {p.description && (
+          <p className="text-sm leading-relaxed opacity-70" style={{ color: "var(--color-noir)" }}>
+            {p.description}
+          </p>
+        )}
 
         {/* Tags + icône */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex flex-wrap gap-2">
-            {p.tags.map((tag) => (
-              <span
-                key={tag}
-                className="text-xs font-semibold px-3 py-1 rounded-full"
-                style={{
-                  backgroundColor: "var(--color-orange)",
-                  color: "var(--color-blanc)",
-                }}
-              >
-                {tag}
-              </span>
-            ))}
+            {tags.map((tag, i) => {
+              const style = TAG_COLORS[i % TAG_COLORS.length];
+              return (
+                <span
+                  key={tag}
+                  className="text-xs font-semibold px-3 py-1 rounded-full"
+                  style={{ backgroundColor: style.bg, color: style.color }}
+                >
+                  #{tag.replace(/^#/, "")}
+                </span>
+              );
+            })}
           </div>
 
           {/* Icône ronde */}
           <div
             className="w-11 h-11 rounded-full flex items-center justify-center text-xl shrink-0"
-            style={{ backgroundColor: p.iconBg }}
+            style={{ backgroundColor: p.couleur_theme ?? "var(--color-bleu-fonce)" }}
             aria-hidden="true"
           >
-            {p.iconEmoji}
+            {p.icon ?? initial}
           </div>
         </div>
       </div>
