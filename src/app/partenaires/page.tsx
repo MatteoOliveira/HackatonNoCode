@@ -3,22 +3,14 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import PartenaireCard from "@/components/PartenaireCard";
 import { createClient } from "@/lib/supabase/server";
+import type { PartenaireData } from "@/types/partenaire";
+
+export type { PartenaireData };
 
 export const metadata: Metadata = {
   title: "Nos Partenaires – Solimouv'",
   description: "Nos partenaires s'engagent au quotidien pour rendre le sport accessible à tous·tes.",
 };
-
-export interface PartenaireData {
-  id: string;
-  nom: string;
-  description?: string | null;
-  badge?: string | null;
-  tags?: string[] | null;
-  icon?: string | null;
-  image_url?: string | null;
-  couleur_theme: string;
-}
 
 export default async function PartenairesPage() {
   let partenaires: PartenaireData[] = [];

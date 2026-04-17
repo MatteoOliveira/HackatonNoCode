@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { PartenaireData } from "@/app/partenaires/page";
+import type { PartenaireData } from "@/types/partenaire";
 
 const TAG_COLORS = [
   { bg: "var(--color-bleu-fonce)", color: "#fff" },
