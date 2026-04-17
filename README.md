@@ -10,7 +10,9 @@
 
 ## Présentation
 
-Solimouv' est un festival du sport inclusif qui réunit des associations sportives parisiennes pour proposer des ateliers ouverts à tous, sans jugement, avec bienveillance. Cette PWA permet aux participants de :
+Solimouv' est le festival du sport inclusif qui réunit **13 associations parisiennes** pour une journée de sport gratuite, accessible à toutes et tous — familles, seniors, personnes en situation de handicap, personnes réfugiées, communauté LGBTQIA+.
+
+Cette PWA permet aux participants de :
 
 - Découvrir le programme des ateliers sportifs et s'y inscrire
 - Créer un profil personnalisé (sport matcher inclusif)
@@ -22,13 +24,14 @@ Solimouv' est un festival du sport inclusif qui réunit des associations sportiv
 
 ## Stack technique
 
-| Technologie | Usage |
-|---|---|
-| **Next.js 16** (App Router + TypeScript) | Framework fullstack |
-| **Tailwind CSS v4** | Styles utilitaires |
-| **Supabase** | BDD PostgreSQL, Auth, Storage, RLS |
-| **Vercel** | Hébergement + CI/CD |
-| **PWA** | manifest.json + service worker |
+| Technologie | Version | Usage |
+|---|---|---|
+| **Next.js** | 16 (App Router + TypeScript) | Framework fullstack |
+| **Tailwind CSS** | v4 | Styles utilitaires |
+| **Supabase** | — | BDD PostgreSQL, Auth, Storage, RLS |
+| **Make (Integromat)** | — | Automatisation : email de bienvenue déclenché par Supabase |
+| **Vercel** | — | Hébergement + CI/CD automatique |
+| **PWA** | — | manifest.json + service worker offline |
 
 ---
 
@@ -50,17 +53,10 @@ cd HackatonNoCode/solimouv-pwa
 # 2. Installer les dépendances
 npm install
 
-# 3. Configurer les variables d'environnement
-```
+# 3. Configurer les variables d'environnement (voir section ci-dessous)
+cp .env.local.example .env.local
+# → éditer .env.local avec vos clés
 
-Créer un fichier `.env.local` à la racine :
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://votre-projet.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=votre_cle_anon
-```
-
-```bash
 # 4. Lancer le serveur de développement
 npm run dev
 ```
@@ -71,27 +67,62 @@ L'application est disponible sur **http://localhost:3000**
 
 ## Variables d'environnement
 
-| Variable | Description | Obligatoire |
-|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | URL du projet Supabase | ✅ |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clé publique anonyme Supabase | ✅ |
+Créer un fichier `.env.local` à la racine du projet :
+
+```env
+# Supabase — obligatoire
+NEXT_PUBLIC_SUPABASE_URL=https://votre-projet.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=votre_cle_anon_publique
+```
+
+| Variable | Description | Obligatoire | Où la trouver |
+|---|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | URL du projet Supabase | ✅ | Supabase → Settings → API → Project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clé publique anonyme Supabase | ✅ | Supabase → Settings → API → `anon` key |
+
+> ⚠️ Ne jamais committer `.env.local`. Il est ignoré par `.gitignore`.
 
 ---
 
-## Pages
+## Accès et configurations du projet
 
-| Route | Description | Auth requise |
-|---|---|---|
-| `/` | Accueil — Hero, countdown, CTA | Non |
-| `/programme` | Ateliers sportifs + modal inscription | Non |
-| `/partenaires` | Associations partenaires | Non |
-| `/contact` | Formulaire de contact + FAQ | Non |
-| `/a-propos` | Présentation Up Sport! | Non |
-| `/carte` | Plan interactif du festival | Non |
-| `/inscription` | Onboarding 6 étapes (profil sportif) | Non |
-| `/connexion` | Login email/password ou Google OAuth | Non |
-| `/profil` | Profil utilisateur + inscriptions | Oui |
-| `/admin` | Dashboard CRUD admin | Admin |
+### Supabase
+
+| Paramètre | Valeur |
+|---|---|
+| **Project URL** | `https://gqjuqqnpefewqvxxqvfj.supabase.co` |
+| **Anon Key (publique)** | Disponible dans Supabase → Settings → API → `anon` |
+| **Publishable Key** | Disponible dans Supabase → Settings → API → `default` |
+| **Service Role Key** | ⚠️ Secrète — Supabase → Settings → API → `service_role` (ne jamais exposer côté client) |
+
+### Make (Integromat)
+
+| Paramètre | Valeur |
+|---|---|
+| **Scénario** | `Solimouv - Nouvelles inscriptions` |
+| **Déclencheur** | Supabase → table `profiles` (nouvelles lignes) |
+| **Action 1** | Gmail → envoi email de bienvenue à l'utilisateur |
+| **Blueprint importable** | [`make-blueprint.json`](./make-blueprint.json) |
+| **Connexion Supabase requise** | Project URL + Service Role Key |
+| **Connexion Gmail requise** | Compte Google de l'équipe |
+
+> Pour configurer Make : importer `make-blueprint.json` → connecter Supabase + Gmail → activer le scénario.
+
+### Google OAuth
+
+| Paramètre | Valeur |
+|---|---|
+| **Provider** | Google (via Supabase Auth) |
+| **Redirect URI** | `https://gqjuqqnpefewqvxxqvfj.supabase.co/auth/v1/callback` |
+| **Configuration** | Google Cloud Console → OAuth 2.0 → Client ID + Secret → Supabase → Authentication → Providers → Google |
+
+### Vercel
+
+| Paramètre | Valeur |
+|---|---|
+| **URL production** | `https://hackaton-no-code.vercel.app` |
+| **Déploiement** | Automatique à chaque push sur `main` |
+| **Variables d'env** | Configurer dans Vercel → Settings → Environment Variables |
 
 ---
 
@@ -111,7 +142,47 @@ public.messages_contact      ← Messages formulaire contact
 public.config                ← Configuration (date festival, etc.)
 ```
 
-Toutes les tables sont protégées par **Row Level Security (RLS)**.
+Toutes les tables sont protégées par **Row Level Security (RLS)**.  
+Migrations SQL dans [`supabase/migrations/`](./supabase/migrations/).
+
+---
+
+## Architecture Make — Automatisations
+
+### Scénario : Solimouv - Nouvelles inscriptions
+
+```
+[Supabase] Watch new row in "profiles"
+        ↓
+[Gmail] Send welcome email → user.email
+```
+
+**Déclencheur :** Make surveille la table `profiles` en temps réel.  
+Dès qu'un nouvel utilisateur s'inscrit (email ou Google OAuth), le scénario se déclenche automatiquement.
+
+**Email envoyé :**
+- **À :** `{{email}}` de la nouvelle ligne
+- **Sujet :** `Bienvenue sur Solimouv', {{pseudo}} !`
+- **Corps :** Message HTML de bienvenue au festival
+
+**Blueprint :** Le fichier [`make-blueprint.json`](./make-blueprint.json) contient l'export complet du scénario. Il peut être importé directement dans Make via **3 points → Import Blueprint**.
+
+---
+
+## Pages
+
+| Route | Description | Auth requise |
+|---|---|---|
+| `/` | Accueil — Hero, countdown, CTA | Non |
+| `/programme` | Ateliers sportifs + modal inscription | Non |
+| `/partenaires` | Associations partenaires | Non |
+| `/contact` | Formulaire de contact + FAQ | Non |
+| `/a-propos` | Présentation Up Sport! | Non |
+| `/carte` | Plan interactif du festival | Non |
+| `/inscription` | Onboarding 6 étapes (profil sportif) | Non |
+| `/connexion` | Login email/password ou Google OAuth | Non |
+| `/profil` | Profil utilisateur + inscriptions | Oui |
+| `/admin` | Dashboard CRUD admin | Admin |
 
 ---
 
@@ -143,15 +214,6 @@ Toutes les tables sont protégées par **Row Level Security (RLS)**.
 
 ---
 
-## Google OAuth — Configuration
-
-1. [Google Cloud Console](https://console.cloud.google.com) → OAuth 2.0 Client ID
-2. Authorized redirect URI : `https://[ref].supabase.co/auth/v1/callback`
-3. Supabase → Authentication → Providers → Google
-4. Supabase → URL Configuration → Site URL + Redirect URLs
-
----
-
 ## Déploiement sur Vercel
 
 ```bash
@@ -159,45 +221,21 @@ Toutes les tables sont protégées par **Row Level Security (RLS)**.
 vercel link --project votre-projet
 
 # Ajouter les variables
-echo "https://..." | vercel env add NEXT_PUBLIC_SUPABASE_URL production
-echo "eyJ..."      | vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY production
+vercel env add NEXT_PUBLIC_SUPABASE_URL production
+vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY production
 
 # Déployer
 vercel --prod
 ```
 
----
-
-## Git Flow
-
-```
-main         → Production (stable, déployé sur Vercel)
-develop      → Branche d'intégration
-feature/*    → Développement par fonctionnalité
-```
-
----
-
-## Charte graphique
-
-| Couleur | Hex | Usage |
-|---|---|---|
-| Noir | `#000814` | Texte principal |
-| Blanc | `#fffcf9` | Fond page |
-| Bleu foncé | `#013bb8` | CTA, liens |
-| Bleu clair | `#47c3f6` | Déco |
-| Rose | `#ff9cd0` | Boutons, tags |
-| Jaune | `#ffe96e` | Badges |
-| Orange | `#ff4400` | Titres, alertes |
-
-**Typographies :** Righteous (titres) + Lexend (corps) — Google Fonts
+Le déploiement est aussi automatique à chaque push sur `main`.
 
 ---
 
 ## Scripts
 
 ```bash
-npm run dev      # Serveur de développement
+npm run dev      # Serveur de développement (http://localhost:3000)
 npm run build    # Build production
 npm run start    # Serveur production local
 npm run lint     # Linting ESLint
@@ -222,14 +260,35 @@ solimouv-pwa/
 │   │   └── ...              # Pages publiques
 │   ├── components/          # Composants React
 │   │   ├── layout/          # Header, Footer
-│   │   └── onboarding/      # Parcours inscription
-│   ├── lib/supabase/        # Clients Supabase
+│   │   └── onboarding/      # Parcours inscription 6 étapes
+│   ├── lib/
+│   │   ├── supabase/        # Clients Supabase (client + server)
+│   │   └── make.ts          # Utilitaire webhook Make (legacy)
 │   └── types/               # Types TypeScript
+├── supabase/
+│   └── migrations/          # Migrations SQL
 ├── documentation/
 │   ├── chat.md              # Journal de développement
-│   └── technical.md         # Architecture technique
-└── next.config.ts           # Config Next.js + sécurité
+│   └── technical.md         # Architecture technique détaillée
+├── make-blueprint.json      # Export scénario Make importable
+└── next.config.ts           # Config Next.js + headers sécurité
 ```
+
+---
+
+## Charte graphique
+
+| Couleur | Hex | Usage |
+|---|---|---|
+| Noir | `#000814` | Texte principal |
+| Blanc | `#fffcf9` | Fond page |
+| Bleu foncé | `#013bb8` | CTA, liens |
+| Bleu clair | `#47c3f6` | Déco |
+| Rose | `#FF9CD0` | Logo, boutons, tags |
+| Jaune | `#ffe96e` | Badges |
+| Orange | `#FF4400` | Apostrophe logo, titres, alertes |
+
+**Typographies :** Righteous (titres) + Lexend (corps) — Google Fonts
 
 ---
 
@@ -237,6 +296,7 @@ solimouv-pwa/
 
 - [`documentation/chat.md`](./documentation/chat.md) — Journal de développement session par session
 - [`documentation/technical.md`](./documentation/technical.md) — Architecture technique détaillée
+- [`make-blueprint.json`](./make-blueprint.json) — Export scénario Make (importable directement)
 
 ---
 
