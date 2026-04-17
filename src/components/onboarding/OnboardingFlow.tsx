@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import OnboardingLayout from "./OnboardingLayout";
 import Step1 from "./steps/Step1";
 import Step2 from "./steps/Step2";
@@ -14,9 +14,13 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 const TOTAL = 6;
 
-function isStepValid(step: number, data: OnboardingData): boolean {
+// Pour les users Google, on commence à l'étape 2 (email/mdp déjà gérés par OAuth)
+const OAUTH_START = 2;
+
+function isStepValid(step: number, data: OnboardingData, isOAuth: boolean): boolean {
   switch (step) {
     case 1:
+      if (isOAuth) return true; // étape ignorée pour OAuth
       return (
         data.pseudo.trim() !== "" &&
         data.email.trim() !== "" &&
@@ -33,8 +37,11 @@ function isStepValid(step: number, data: OnboardingData): boolean {
 }
 
 export default function OnboardingFlow() {
-  const router = useRouter();
-  const [step, setStep]       = useState(1);
+  const router       = useRouter();
+  const searchParams = useSearchParams();
+  const isOAuth      = searchParams.get("oauth") === "1";
+
+  const [step, setStep]       = useState(isOAuth ? OAUTH_START : 1);
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState("");
   const [data, setData]       = useState<OnboardingData>({
@@ -42,13 +49,26 @@ export default function OnboardingFlow() {
     pronouns: "", pratique: "", besoin: "", accessibilite: [],
   });
 
+  // Pour les users OAuth, on récupère leur pseudo depuis Supabase
+  useEffect(() => {
+    if (!isOAuth || !isSupabaseConfigured()) return;
+    createClient().auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        const name = user.user_metadata?.full_name || user.user_metadata?.name || "";
+        const pseudo = name.split(" ")[0] || user.email?.split("@")[0] || "";
+        setData((d) => ({ ...d, pseudo, email: user.email ?? "" }));
+      }
+    });
+  }, [isOAuth]);
+
   function update(partial: Partial<OnboardingData>) {
     setData((prev) => ({ ...prev, ...partial }));
     setError("");
   }
 
   function handleBack() {
-    if (step > 1) setStep((s) => s - 1);
+    const minStep = isOAuth ? OAUTH_START : 1;
+    if (step > minStep) setStep((s) => s - 1);
     else router.push("/");
   }
 
@@ -64,7 +84,30 @@ export default function OnboardingFlow() {
     setLoading(true);
     setError("");
 
-    // ── Fallback localStorage si Supabase non configuré ──
+    // ── Utilisateur OAuth : déjà connecté, on met juste à jour le profil ──
+    if (isOAuth && isSupabaseConfigured()) {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { router.push("/connexion"); return; }
+
+        await supabase.from("profiles").update({
+          pseudo:        data.pseudo.trim() || user.user_metadata?.full_name?.split(" ")[0] || "Participant",
+          pronouns:      data.pronouns,
+          pratique:      data.pratique,
+          besoin:        data.besoin,
+          accessibilite: data.accessibilite,
+        }).eq("id", user.id);
+
+        router.push("/profil");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Une erreur est survenue.");
+        setLoading(false);
+      }
+      return;
+    }
+
+    // ── Utilisateur email/mot de passe ──
     if (!isSupabaseConfigured()) {
       try {
         const { confirmPassword: _, password: __, ...safe } = data;
@@ -77,7 +120,6 @@ export default function OnboardingFlow() {
     try {
       const supabase = createClient();
 
-      // 1. Création du compte auth
       const { data: auth, error: authErr } = await supabase.auth.signUp({
         email: data.email.trim(),
         password: data.password,
@@ -101,7 +143,6 @@ export default function OnboardingFlow() {
         return;
       }
 
-      // 2. Insertion du profil
       const { error: profileErr } = await supabase.from("profiles").insert({
         id:            userId,
         pseudo:        data.pseudo.trim(),
@@ -113,7 +154,6 @@ export default function OnboardingFlow() {
       });
 
       if (profileErr) {
-        // Profil existe déjà → update
         if (profileErr.code === "23505") {
           await supabase.from("profiles").update({
             pseudo:        data.pseudo.trim(),
@@ -129,7 +169,6 @@ export default function OnboardingFlow() {
         }
       }
 
-      // 3. Cache local pour affichage immédiat
       try {
         const { confirmPassword: _, password: __, ...safe } = data;
         localStorage.setItem("solimouv_user", JSON.stringify(safe));
@@ -155,14 +194,18 @@ export default function OnboardingFlow() {
     }
   };
 
+  // Calcul de la progression pour afficher seulement les étapes pertinentes
+  const displayTotal = isOAuth ? TOTAL - OAUTH_START + 1 : TOTAL;
+  const displayStep  = isOAuth ? step - OAUTH_START + 1 : step;
+
   return (
     <OnboardingLayout
-      step={step}
-      total={TOTAL}
+      step={displayStep}
+      total={displayTotal}
       onBack={handleBack}
       onNext={handleNext}
-      nextLabel={step === TOTAL ? "Compris !" : "Suivant"}
-      nextDisabled={!isStepValid(step, data) || loading}
+      nextLabel={step === TOTAL ? (isOAuth ? "Terminer !" : "Compris !") : "Suivant"}
+      nextDisabled={!isStepValid(step, data, isOAuth) || loading}
       loading={loading}
       error={error}
     >
