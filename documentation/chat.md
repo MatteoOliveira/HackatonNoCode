@@ -63,3 +63,46 @@ main (v0.1 à venir)
 - [ ] Branche `feature/don-cagnotte` : formulaire don + barre progression (Brique A)
 - [ ] Publier le repo GitHub et déployer sur Vercel
 - [ ] Configurer les variables d'environnement Supabase
+
+---
+
+## 17 avril 2026 – Login + Profil
+
+### Problème identifié
+La table `profiles` Supabase avait des colonnes différentes de celles utilisées dans le code :
+- DB : `prenom`, `tranche_age`, `centres_interet`, `besoins_accessibilite`
+- Code : `pseudo`, `pronouns`, `pratique`, `besoin`, `accessibilite`
+→ L'inscription échouait silencieusement (colonnes inexistantes).
+
+### Ce que j'ai fait
+
+**Migration Supabase (`fix_profiles_columns`)**
+- Ajout des colonnes manquantes dans `profiles` : `pseudo`, `email`, `pronouns`, `pratique`, `besoin`, `accessibilite text[]`
+- Renommage de `besoins_accessibilite` → `besoins_accessibilite_legacy` (conservation des données)
+- Mise à jour du trigger `handle_new_user` pour insérer aussi `pseudo` depuis les métadonnées auth
+
+**Nouvelle page `/connexion`**
+- `src/app/connexion/page.tsx` : page Next.js avec metadata
+- `src/components/ConnexionClient.tsx` : formulaire email/password, `supabase.auth.signInWithPassword()`, gestion erreurs (mauvais identifiants, email non confirmé), redirection vers `/profil`
+
+**Header mis à jour**
+- Lien "Se connecter" ajouté dans le menu mobile drawer (`/connexion`)
+
+### État
+- Inscription : crée un compte auth + profil en DB ✅
+- Connexion : formulaire complet sur `/connexion` ✅
+- Profil : lit depuis Supabase (fallback localStorage) ✅
+- Colonnes DB alignées avec le code ✅
+
+**Bugs corrigés :**
+- Trigger `handle_new_user` : `SET search_path = public` ajouté (SECURITY DEFINER ne trouve pas `profiles` sinon)
+- RLS policies `profiles` : récursion infinie corrigée via fonction `get_my_role()` SECURITY DEFINER
+
+**Page profil enrichie (17 avril) :**
+- Section "Mon compte" : email, date d'inscription, préférences notifications
+- Section "Ce qui me fait du bien" : pratique + besoin
+- Section "Mes besoins spécifiques" : accessibilité
+- Section "Mes activités recommandées" : 4 activités selon profil
+- Section "Mes participations" : checkins du jour J avec paliers débloqués
+- Badges pronoms + rôle (admin/super_admin)
+- Bouton "Se déconnecter" (Supabase signOut → redirect /)
