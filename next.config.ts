@@ -13,8 +13,10 @@ const CSP = [
   "font-src 'self' https://fonts.gstatic.com",
   // Images : site + Supabase Storage + data URIs + blob (aperçus upload)
   `img-src 'self' ${SUPABASE_URL} data: blob:`,
-  // Requêtes API + Supabase Realtime (WebSocket)
-  `connect-src 'self' ${SUPABASE_URL} wss://${new URL(SUPABASE_URL).hostname}`,
+  // Requêtes API + Supabase Realtime (WebSocket) + Google OAuth
+  `connect-src 'self' ${SUPABASE_URL} wss://${new URL(SUPABASE_URL).hostname} https://accounts.google.com`,
+  // Google OAuth — autorise la navigation vers accounts.google.com
+  "form-action 'self' https://accounts.google.com",
   // Service Worker + manifest PWA
   "worker-src 'self'",
   "manifest-src 'self'",
