@@ -5,6 +5,7 @@ import Footer from "@/components/layout/Footer";
 import PWARegister from "@/components/PWARegister";
 import Countdown from "@/components/Countdown";
 import HeroImage from "@/components/HeroImage";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Solimouv' – Le festival du sport pour tous",
@@ -12,7 +13,17 @@ export const metadata: Metadata = {
     "Parce que le mouvement est un droit. Rejoignez notre communauté inclusive pour bouger, partager et vous réapproprier l'espace sportif en toute bienveillance.",
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  let festivalDate: string | null = null;
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("config")
+      .select("value")
+      .eq("key", "date_festival")
+      .single();
+    if (data?.value) festivalDate = data.value as string;
+  } catch {}
   return (
     <>
       <PWARegister />
@@ -85,7 +96,7 @@ export default function HomePage() {
 
         {/* ── COUNTDOWN ────────────────────────────────────────── */}
         <section className="py-6" aria-label="Compte à rebours avant le festival">
-          <Countdown />
+          <Countdown festivalDate={festivalDate} />
         </section>
 
         {/* ── CTA PRINCIPAL ────────────────────────────────────── */}

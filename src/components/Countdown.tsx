@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 const FALLBACK_DATE = new Date("2026-07-11T09:00:00");
 
@@ -9,10 +8,10 @@ function getTimeLeft(target: Date) {
   const diff = target.getTime() - Date.now();
   if (diff <= 0) return { jours: 0, heures: 0, min: 0, sec: 0 };
   return {
-    jours: Math.floor(diff / (1000 * 60 * 60 * 24)),
+    jours:  Math.floor(diff / (1000 * 60 * 60 * 24)),
     heures: Math.floor((diff / (1000 * 60 * 60)) % 24),
-    min: Math.floor((diff / (1000 * 60)) % 60),
-    sec: Math.floor((diff / 1000) % 60),
+    min:    Math.floor((diff / (1000 * 60)) % 60),
+    sec:    Math.floor((diff / 1000) % 60),
   };
 }
 
@@ -20,34 +19,25 @@ function Pad({ children }: { children: number }) {
   return <>{String(children).padStart(2, "0")}</>;
 }
 
-export default function Countdown() {
-  const [festivalDate, setFestivalDate] = useState(FALLBACK_DATE);
-  const [time, setTime] = useState(() => getTimeLeft(FALLBACK_DATE));
+interface Props {
+  festivalDate?: string | null;
+}
+
+export default function Countdown({ festivalDate }: Props) {
+  const target = festivalDate ? new Date(festivalDate) : FALLBACK_DATE;
+  const resolvedDate = isNaN(target.getTime()) ? FALLBACK_DATE : target;
+
+  const [time, setTime] = useState(() => getTimeLeft(resolvedDate));
 
   useEffect(() => {
-    if (!isSupabaseConfigured()) return;
-    createClient()
-      .from("config")
-      .select("value")
-      .eq("key", "date_festival")
-      .single()
-      .then(({ data }) => {
-        if (data?.value) {
-          const d = new Date(data.value as string);
-          if (!isNaN(d.getTime())) setFestivalDate(d);
-        }
-      });
-  }, []);
-
-  useEffect(() => {
-    const id = setInterval(() => setTime(getTimeLeft(festivalDate)), 1000);
+    const id = setInterval(() => setTime(getTimeLeft(resolvedDate)), 1000);
     return () => clearInterval(id);
-  }, [festivalDate]);
+  }, [resolvedDate]);
 
   const blocks = [
-    { val: time.jours, label: "Jours" },
+    { val: time.jours,  label: "Jours" },
     { val: time.heures, label: "Heures" },
-    { val: time.min, label: "Min" },
+    { val: time.min,    label: "Min" },
   ];
 
   return (
@@ -55,17 +45,13 @@ export default function Countdown() {
       className="rounded-2xl p-5 mx-4 relative overflow-hidden"
       style={{ backgroundColor: "#f5f5f5" }}
     >
-      {/* Déco bleue en bas à droite */}
       <div
         className="absolute bottom-0 right-0 w-20 h-20 rounded-tl-full opacity-30"
         style={{ backgroundColor: "var(--color-bleu-clair)" }}
         aria-hidden="true"
       />
 
-      <p
-        className="text-xs font-bold tracking-widest mb-4"
-        style={{ color: "var(--color-noir)" }}
-      >
+      <p className="text-xs font-bold tracking-widest mb-4" style={{ color: "var(--color-noir)" }}>
         PROCHAIN RASSEMBLEMENT
       </p>
 
@@ -82,20 +68,12 @@ export default function Countdown() {
               >
                 <Pad>{b.val}</Pad>
               </span>
-              <span
-                className="text-xs mt-1 font-medium"
-                style={{ color: "var(--color-blanc)" }}
-              >
+              <span className="text-xs mt-1 font-medium" style={{ color: "var(--color-blanc)" }}>
                 {b.label}
               </span>
             </div>
             {i < blocks.length - 1 && (
-              <span
-                className="text-2xl font-bold"
-                style={{ color: "var(--color-rose)" }}
-              >
-                :
-              </span>
+              <span className="text-2xl font-bold" style={{ color: "var(--color-rose)" }}>:</span>
             )}
           </div>
         ))}
