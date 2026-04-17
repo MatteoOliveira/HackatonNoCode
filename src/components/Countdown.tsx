@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
-const FESTIVAL_DATE = new Date("2026-07-11T09:00:00");
+const FALLBACK_DATE = new Date("2026-07-11T09:00:00");
 
-function getTimeLeft() {
-  const diff = FESTIVAL_DATE.getTime() - Date.now();
+function getTimeLeft(target: Date) {
+  const diff = target.getTime() - Date.now();
   if (diff <= 0) return { jours: 0, heures: 0, min: 0, sec: 0 };
   return {
     jours: Math.floor(diff / (1000 * 60 * 60 * 24)),
@@ -20,12 +21,28 @@ function Pad({ children }: { children: number }) {
 }
 
 export default function Countdown() {
-  const [time, setTime] = useState(getTimeLeft);
+  const [festivalDate, setFestivalDate] = useState(FALLBACK_DATE);
+  const [time, setTime] = useState(() => getTimeLeft(FALLBACK_DATE));
 
   useEffect(() => {
-    const id = setInterval(() => setTime(getTimeLeft()), 1000);
-    return () => clearInterval(id);
+    if (!isSupabaseConfigured()) return;
+    createClient()
+      .from("config")
+      .select("value")
+      .eq("key", "date_festival")
+      .single()
+      .then(({ data }) => {
+        if (data?.value) {
+          const d = new Date(data.value as string);
+          if (!isNaN(d.getTime())) setFestivalDate(d);
+        }
+      });
   }, []);
+
+  useEffect(() => {
+    const id = setInterval(() => setTime(getTimeLeft(festivalDate)), 1000);
+    return () => clearInterval(id);
+  }, [festivalDate]);
 
   const blocks = [
     { val: time.jours, label: "Jours" },
