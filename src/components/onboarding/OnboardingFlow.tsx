@@ -11,6 +11,7 @@ import Step5 from "./steps/Step5";
 import Step6 from "./steps/Step6";
 import type { OnboardingData } from "./types";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { notifyMakeNewUser } from "@/lib/make";
 
 const TOTAL = 6;
 
@@ -91,13 +92,22 @@ export default function OnboardingFlow() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { router.push("/connexion"); return; }
 
+        const pseudo = data.pseudo.trim() || user.user_metadata?.full_name?.split(" ")[0] || "Participant";
         await supabase.from("profiles").update({
-          pseudo:        data.pseudo.trim() || user.user_metadata?.full_name?.split(" ")[0] || "Participant",
+          pseudo,
           pronouns:      data.pronouns,
           pratique:      data.pratique,
           besoin:        data.besoin,
           accessibilite: data.accessibilite,
         }).eq("id", user.id);
+
+        // Notifier Make (Google Sheets)
+        await notifyMakeNewUser({
+          email:      user.email ?? "",
+          pseudo,
+          created_at: new Date().toISOString(),
+          source:     "google",
+        });
 
         router.push("/profil");
       } catch (err: unknown) {
@@ -173,6 +183,14 @@ export default function OnboardingFlow() {
         const { confirmPassword: _, password: __, ...safe } = data;
         localStorage.setItem("solimouv_user", JSON.stringify(safe));
       } catch {}
+
+      // Notifier Make (Google Sheets)
+      await notifyMakeNewUser({
+        email:      data.email.trim(),
+        pseudo:     data.pseudo.trim(),
+        created_at: new Date().toISOString(),
+        source:     "email",
+      });
 
       router.push("/profil");
 
