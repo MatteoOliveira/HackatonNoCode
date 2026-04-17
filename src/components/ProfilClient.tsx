@@ -224,7 +224,7 @@ export default function ProfilClient() {
               .from("inscriptions")
               .select("id")
               .eq("user_id", user.id)
-              .single();
+              .maybeSingle();
 
             if (inscription) {
               const { data: ckData } = await supabase

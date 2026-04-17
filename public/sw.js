@@ -1,5 +1,5 @@
-// v0.5 — mis à jour à chaque release pour invalider le cache
-const CACHE_NAME = "solimouv-v5";
+// v0.6 — invalide les caches obsolètes (post-redesign partenaires + icônes PWA)
+const CACHE_NAME = "solimouv-v6";
 const STATIC_ASSETS = [
   "/",
   "/a-propos",
