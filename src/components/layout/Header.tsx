@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 const NAV_LINKS = [
   { href: "/", label: "Accueil" },
@@ -15,6 +16,26 @@ const NAV_LINKS = [
 export default function Header() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [isAdmin, setIsAdmin]   = useState(false);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+    const supabase = createClient();
+
+    async function checkSession() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setLoggedIn(false); setIsAdmin(false); return; }
+      setLoggedIn(true);
+      const { data } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+      setIsAdmin(!!data && ["admin", "super_admin"].includes(data.role));
+    }
+
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => checkSession());
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
@@ -96,6 +117,32 @@ export default function Header() {
               {link.label}
             </Link>
           ))}
+          {isAdmin && (
+            <Link
+              href="/admin"
+              onClick={() => setMenuOpen(false)}
+              className="py-3 px-2 rounded-lg text-base font-medium transition-colors flex items-center gap-2"
+              style={{
+                color: pathname === "/admin" ? "var(--color-orange)" : "var(--color-bleu-fonce)",
+                backgroundColor: pathname === "/admin" ? "#fff5f0" : "transparent",
+              }}
+            >
+              ⚙️ Administration
+            </Link>
+          )}
+          {!loggedIn && (
+            <Link
+              href="/connexion"
+              onClick={() => setMenuOpen(false)}
+              className="py-3 px-2 rounded-lg text-base font-medium transition-colors"
+              style={{
+                color: pathname === "/connexion" ? "var(--color-orange)" : "var(--color-noir)",
+                backgroundColor: pathname === "/connexion" ? "#fff5f0" : "transparent",
+              }}
+            >
+              Se connecter
+            </Link>
+          )}
           <Link
             href="/soutenir"
             onClick={() => setMenuOpen(false)}
