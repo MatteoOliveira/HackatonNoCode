@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 
 interface Props {
@@ -20,8 +19,8 @@ export default function StepImage({
 
   return (
     <div
-      className="w-full rounded-2xl overflow-hidden mb-6 relative"
-      style={{ aspectRatio: "4/3" }}
+      className="w-full rounded-2xl overflow-hidden mb-6"
+      style={{ aspectRatio: "4/3", position: "relative" }}
     >
       <div
         className="absolute inset-0 flex items-center justify-center text-5xl"
@@ -31,12 +30,19 @@ export default function StepImage({
         {fallbackEmoji}
       </div>
       {!error && (
-        <Image
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
           src={src}
           alt={alt}
-          fill
-          className="object-cover relative z-10"
           onError={() => setError(true)}
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            zIndex: 10,
+          }}
         />
       )}
     </div>
