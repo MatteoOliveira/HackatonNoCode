@@ -147,28 +147,6 @@ Migrations SQL dans [`supabase/migrations/`](./supabase/migrations/).
 
 ---
 
-## Architecture Make — Automatisations
-
-### Scénario : Solimouv - Nouvelles inscriptions
-
-```
-[Supabase] Watch new row in "profiles"
-        ↓
-[Gmail] Send welcome email → user.email
-```
-
-**Déclencheur :** Make surveille la table `profiles` en temps réel.  
-Dès qu'un nouvel utilisateur s'inscrit (email ou Google OAuth), le scénario se déclenche automatiquement.
-
-**Email envoyé :**
-- **À :** `{{email}}` de la nouvelle ligne
-- **Sujet :** `Bienvenue sur Solimouv', {{pseudo}} !`
-- **Corps :** Message HTML de bienvenue au festival
-
-**Blueprint :** Le fichier [`make-blueprint.json`](./make-blueprint.json) contient l'export complet du scénario. Il peut être importé directement dans Make via **3 points → Import Blueprint**.
-
----
-
 ## Pages
 
 | Route | Description | Auth requise |
