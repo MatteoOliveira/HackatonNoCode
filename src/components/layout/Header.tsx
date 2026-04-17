@@ -60,9 +60,9 @@ export default function Header() {
           <Link
             href="/"
             className="text-2xl"
-            style={{ fontFamily: "var(--font-titre)", color: "var(--color-orange)" }}
+            style={{ fontFamily: "var(--font-titre)" }}
           >
-            Solimouv&apos;
+            <span style={{ color: "#FF9CD0" }}>Solimouv</span><span style={{ color: "#FF4400" }}>&apos;</span>
           </Link>
 
           {/* Hamburger */}

@@ -11,7 +11,6 @@ import Step5 from "./steps/Step5";
 import Step6 from "./steps/Step6";
 import type { OnboardingData } from "./types";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
-import { notifyMakeNewUser } from "@/lib/make";
 
 const TOTAL = 6;
 
@@ -101,14 +100,6 @@ export default function OnboardingFlow() {
           accessibilite: data.accessibilite,
         }).eq("id", user.id);
 
-        // Notifier Make (Google Sheets)
-        await notifyMakeNewUser({
-          email:      user.email ?? "",
-          pseudo,
-          created_at: new Date().toISOString(),
-          source:     "google",
-        });
-
         router.push("/profil");
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : "Une erreur est survenue.");
@@ -183,14 +174,6 @@ export default function OnboardingFlow() {
         const { confirmPassword: _, password: __, ...safe } = data;
         localStorage.setItem("solimouv_user", JSON.stringify(safe));
       } catch {}
-
-      // Notifier Make (Google Sheets)
-      await notifyMakeNewUser({
-        email:      data.email.trim(),
-        pseudo:     data.pseudo.trim(),
-        created_at: new Date().toISOString(),
-        source:     "email",
-      });
 
       router.push("/profil");
 

@@ -61,7 +61,7 @@ export default async function HomePage() {
               >
                 <path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z" />
               </svg>
-              Ouvert à tous·tes
+              Ouvert à tous tes — Gratuit · Paris · 6 juin 2026
             </span>
           </div>
 
@@ -73,11 +73,7 @@ export default async function HomePage() {
               color: "var(--color-bleu-fonce)",
             }}
           >
-            Le terrain
-            <br />
-            où chacun.e
-            <br />
-            est à sa place
+            Le festival du sport inclusif où chacun.e est à sa place
           </h1>
 
           {/* Sous-titre */}
@@ -85,9 +81,7 @@ export default async function HomePage() {
             className="text-base leading-relaxed mb-6 opacity-80"
             style={{ color: "var(--color-noir)" }}
           >
-            Parce que le mouvement est un droit. Rejoignez notre communauté inclusive
-            pour bouger, partager et vous réapproprier l&apos;espace sportif en toute
-            bienveillance.
+            Parce que le mouvement est un droit. Solimouv&apos; réunit 13 associations parisiennes pour une journée de sport gratuite, accessible à toutes et tous — familles, seniors, personnes en situation de handicap, personnes réfugiées, communauté LGBTQIA+. Ici, personne ne demande ce que tu sais déjà faire, seulement ce que tu as envie de découvrir.
           </p>
 
           {/* Image hero */}

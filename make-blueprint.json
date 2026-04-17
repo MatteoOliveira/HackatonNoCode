@@ -1,0 +1,61 @@
+{
+  "name": "Solimouv - Nouvelles inscriptions",
+  "flow": [
+    {
+      "id": 1,
+      "module": "supabase:watchRows",
+      "version": 1,
+      "parameters": {
+        "account": 0,
+        "table": "profiles"
+      },
+      "mapper": {},
+      "metadata": {
+        "designer": { "x": -305, "y": 0 },
+        "restore": {
+          "parameters": {
+            "table": {
+              "label": "profiles"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 2,
+      "module": "gmail:ActionSendEmail",
+      "version": 1,
+      "parameters": {
+        "account": 0
+      },
+      "mapper": {
+        "sendTo": "{{1.email}}",
+        "subject": "Bienvenue sur Solimouv, {{1.pseudo}} !",
+        "htmlContent": "<h2>Bonjour {{1.pseudo}} !</h2><p>Tu viens de rejoindre <strong>Solimouv Up Sport!</strong></p><p>On est ravis de t'avoir parmi nous. Profite de l'événement !</p><br/><p>À très vite,</p><p><strong>L'équipe Solimouv</strong></p>",
+        "type": "html"
+      },
+      "metadata": {
+        "designer": { "x": 305, "y": 0 }
+      }
+    }
+  ],
+  "metadata": {
+    "instant": false,
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "sequential": false,
+      "confidential": false,
+      "dataloss": false,
+      "dlq": false,
+      "freshVariables": false
+    },
+    "designer": {
+      "orphans": []
+    },
+    "zone": "eu1.make.com"
+  }
+}
