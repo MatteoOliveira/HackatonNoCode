@@ -102,6 +102,13 @@ export default function AdminClient() {
   const [uploadingPartImg, setUploadingPartImg] = useState(false);
   const [savingP, setSavingP]         = useState(false);
   const [errP, setErrP]               = useState("");
+  const [editingPartenaire, setEditingPartenaire] = useState<string | null>(null);
+  const [editPartDraft, setEditPartDraft]         = useState<{ nom: string; badge: string; description: string; tags: string; icon: string; image_url: string; site_web: string; contact_email: string; couleur_theme: string } | null>(null);
+  const [editPartImageFile, setEditPartImageFile] = useState<File | null>(null);
+  const [editPartImagePreview, setEditPartImagePreview] = useState<string>("");
+  const [uploadingEditPartImg, setUploadingEditPartImg] = useState(false);
+  const [savingEditP, setSavingEditP]             = useState(false);
+  const [errEditP, setErrEditP]                   = useState("");
 
   /* Utilisateurs */
   const [users, setUsers]           = useState<UserProfile[]>([]);
@@ -373,6 +380,69 @@ export default function AdminClient() {
     setNewP({ nom: "", badge: "", description: "", tags: "", icon: "", site_web: "", contact_email: "", couleur_theme: "#013bb8", actif: true });
     setPartImageFile(null); setPartImagePreview("");
     setShowAddP(false); setSavingP(false);
+  }
+
+  function startEditPartenaire(p: Association & { badge?: string; tags?: string[]; icon?: string; image_url?: string; site_web?: string; contact_email?: string }) {
+    if (editingPartenaire === p.id) { setEditingPartenaire(null); setEditPartDraft(null); return; }
+    setEditingPartenaire(p.id);
+    setEditPartDraft({
+      nom:           p.nom,
+      badge:         (p as { badge?: string }).badge ?? "",
+      description:   p.description ?? "",
+      tags:          ((p as { tags?: string[] }).tags ?? []).join(", "),
+      icon:          (p as { icon?: string }).icon ?? "",
+      image_url:     (p as { image_url?: string }).image_url ?? "",
+      site_web:      p.site_web ?? "",
+      contact_email: p.contact_email ?? "",
+      couleur_theme: p.couleur_theme,
+    });
+    setEditPartImageFile(null);
+    setEditPartImagePreview((p as { image_url?: string }).image_url ?? "");
+    setErrEditP("");
+  }
+
+  function onEditPartImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setEditPartImageFile(file);
+    setEditPartImagePreview(URL.createObjectURL(file));
+  }
+
+  async function updatePartenaire(id: string) {
+    if (!editPartDraft) return;
+    setErrEditP(""); setSavingEditP(true);
+    const supabase = createClient();
+
+    let finalImageUrl = editPartDraft.image_url || null;
+    if (editPartImageFile) {
+      const uploaded = await uploadImage(editPartImageFile, setUploadingEditPartImg, setErrEditP);
+      if (uploaded) finalImageUrl = uploaded;
+    }
+
+    const tagsArray = editPartDraft.tags.split(",").map((t) => t.trim()).filter(Boolean);
+
+    const { error } = await supabase.from("associations").update({
+      nom:           editPartDraft.nom.trim(),
+      badge:         editPartDraft.badge.trim() || null,
+      description:   editPartDraft.description.trim() || null,
+      tags:          tagsArray,
+      icon:          editPartDraft.icon.trim() || null,
+      image_url:     finalImageUrl,
+      site_web:      editPartDraft.site_web.trim() || null,
+      contact_email: editPartDraft.contact_email.trim() || null,
+      couleur_theme: editPartDraft.couleur_theme,
+    }).eq("id", id);
+
+    if (error) { setErrEditP(error.message); setSavingEditP(false); return; }
+
+    const { data } = await supabase.from("associations")
+      .select("id, nom, slug, description, site_web, contact_email, couleur_theme, actif")
+      .order("nom");
+    if (data) { setAssocs(data); setPartenaires(data); }
+
+    setEditingPartenaire(null); setEditPartDraft(null);
+    setEditPartImageFile(null); setEditPartImagePreview("");
+    setSavingEditP(false);
   }
 
   async function deletePartenaire(id: string) {
@@ -834,27 +904,119 @@ export default function AdminClient() {
             {/* Liste */}
             <div className="flex flex-col gap-3">
               {partenaires.map((p) => (
-                <div key={p.id} className="rounded-2xl px-4 py-3 flex items-start gap-3" style={{ backgroundColor: "#fff", boxShadow: "0 1px 6px rgba(0,0,0,0.06)" }}>
-                  <div
-                    className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
-                    style={{ backgroundColor: p.couleur_theme, color: "#fff" }}
-                  >
-                    {p.nom[0]?.toUpperCase()}
+                <div key={p.id} className="rounded-2xl overflow-hidden" style={{ backgroundColor: "#fff", boxShadow: "0 1px 6px rgba(0,0,0,0.06)" }}>
+                  {/* Ligne résumé */}
+                  <div className="px-4 py-3 flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
+                      style={{ backgroundColor: p.couleur_theme, color: "#fff" }}>
+                      {p.nom[0]?.toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate" style={{ color: "var(--color-bleu-fonce)" }}>{p.nom}</p>
+                      {p.contact_email && <p className="text-xs opacity-50 truncate" style={{ color: "var(--color-noir)" }}>{p.contact_email}</p>}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => startEditPartenaire(p as Association & { badge?: string; tags?: string[]; icon?: string; image_url?: string; site_web?: string; contact_email?: string })}
+                        className="text-xs px-2 py-1 rounded-full font-medium"
+                        style={{ backgroundColor: editingPartenaire === p.id ? "var(--color-orange)" : "#fff3e0", color: editingPartenaire === p.id ? "#fff" : "#e65100" }}
+                      >
+                        ✏️ Modifier
+                      </button>
+                      <button
+                        onClick={() => togglePartenaire(p.id, p.actif)}
+                        className="text-xs px-2 py-1 rounded-full font-medium"
+                        style={{ backgroundColor: p.actif ? "#e8f5e9" : "#f0f0f0", color: p.actif ? "#2e7d32" : "#999" }}
+                      >
+                        {p.actif ? "Actif" : "Inactif"}
+                      </button>
+                      <button onClick={() => deletePartenaire(p.id)} className="text-lg leading-none opacity-40 hover:opacity-100 transition-opacity" aria-label="Supprimer">🗑️</button>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate" style={{ color: "var(--color-bleu-fonce)" }}>{p.nom}</p>
-                    {p.contact_email && <p className="text-xs opacity-50 truncate" style={{ color: "var(--color-noir)" }}>{p.contact_email}</p>}
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      onClick={() => togglePartenaire(p.id, p.actif)}
-                      className="text-xs px-2 py-1 rounded-full font-medium"
-                      style={{ backgroundColor: p.actif ? "#e8f5e9" : "#f0f0f0", color: p.actif ? "#2e7d32" : "#999" }}
-                    >
-                      {p.actif ? "Actif" : "Inactif"}
-                    </button>
-                    <button onClick={() => deletePartenaire(p.id)} className="text-lg leading-none opacity-40 hover:opacity-100 transition-opacity" aria-label="Supprimer">🗑️</button>
-                  </div>
+
+                  {/* Panel édition */}
+                  {editingPartenaire === p.id && editPartDraft && (
+                    <div className="border-t px-4 py-4 flex flex-col gap-3" style={{ borderColor: "#f0f0f0", backgroundColor: "#fffbf5" }}>
+                      <p className="text-xs font-bold" style={{ color: "var(--color-orange)" }}>✏️ Modifier le partenaire</p>
+
+                      <Field label="Image de couverture">
+                        <div className="flex flex-col gap-2">
+                          {editPartImagePreview && (
+                            <div className="relative w-full rounded-xl overflow-hidden" style={{ aspectRatio: "16/9" }}>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={editPartImagePreview} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                              <button type="button" onClick={() => { setEditPartImageFile(null); setEditPartImagePreview(""); setEditPartDraft((d) => d ? { ...d, image_url: "" } : d); }}
+                                className="absolute top-2 right-2 w-7 h-7 rounded-full text-xs flex items-center justify-center"
+                                style={{ backgroundColor: "rgba(0,0,0,0.5)", color: "#fff" }}>✕</button>
+                            </div>
+                          )}
+                          <label className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer text-sm font-medium"
+                            style={{ backgroundColor: "#f0f0f0", color: "var(--color-bleu-fonce)" }}>
+                            {uploadingEditPartImg ? "Upload…" : "📷 Changer l'image"}
+                            <input type="file" accept="image/*" className="hidden" onChange={onEditPartImageChange} disabled={uploadingEditPartImg} />
+                          </label>
+                        </div>
+                      </Field>
+
+                      <Field label="Nom *">
+                        <input className={INPUT} style={inputStyle} value={editPartDraft.nom}
+                          onChange={(e) => setEditPartDraft((d) => d ? { ...d, nom: e.target.value } : d)} />
+                      </Field>
+                      <Field label="Badge">
+                        <input className={INPUT} style={inputStyle} value={editPartDraft.badge}
+                          onChange={(e) => setEditPartDraft((d) => d ? { ...d, badge: e.target.value } : d)}
+                          placeholder="Ex: Expert handisport" />
+                      </Field>
+                      <Field label="Description">
+                        <textarea className={INPUT} style={{ ...inputStyle, resize: "none" }} rows={3} value={editPartDraft.description}
+                          onChange={(e) => setEditPartDraft((d) => d ? { ...d, description: e.target.value } : d)} />
+                      </Field>
+                      <Field label="Tags (séparés par des virgules)">
+                        <input className={INPUT} style={inputStyle} value={editPartDraft.tags}
+                          onChange={(e) => setEditPartDraft((d) => d ? { ...d, tags: e.target.value } : d)}
+                          placeholder="InclusionMoteur, EspritDequipe" />
+                      </Field>
+                      <Field label="Icône (emoji)">
+                        <input className={INPUT} style={inputStyle} value={editPartDraft.icon}
+                          onChange={(e) => setEditPartDraft((d) => d ? { ...d, icon: e.target.value } : d)}
+                          placeholder="🏀" maxLength={4} />
+                      </Field>
+                      <Field label="Site web">
+                        <input className={INPUT} style={inputStyle} value={editPartDraft.site_web}
+                          onChange={(e) => setEditPartDraft((d) => d ? { ...d, site_web: e.target.value } : d)}
+                          placeholder="https://..." />
+                      </Field>
+                      <Field label="Email contact">
+                        <input type="email" className={INPUT} style={inputStyle} value={editPartDraft.contact_email}
+                          onChange={(e) => setEditPartDraft((d) => d ? { ...d, contact_email: e.target.value } : d)}
+                          placeholder="contact@asso.fr" />
+                      </Field>
+                      <Field label="Couleur thème">
+                        <div className="flex items-center gap-3">
+                          <input type="color" value={editPartDraft.couleur_theme}
+                            onChange={(e) => setEditPartDraft((d) => d ? { ...d, couleur_theme: e.target.value } : d)}
+                            className="w-10 h-10 rounded-lg border-2 cursor-pointer" style={{ borderColor: "#d1d5db" }} />
+                          <span className="text-sm font-mono opacity-60" style={{ color: "var(--color-noir)" }}>{editPartDraft.couleur_theme}</span>
+                        </div>
+                      </Field>
+
+                      {errEditP && <p className="text-xs px-3 py-2 rounded-xl" style={{ backgroundColor: "#fdecea", color: "#c62828" }}>{errEditP}</p>}
+
+                      <div className="flex gap-3">
+                        <button onClick={() => { setEditingPartenaire(null); setEditPartDraft(null); }}
+                          className="flex-1 py-2.5 rounded-xl text-sm font-semibold border-2"
+                          style={{ borderColor: "#d1d5db", color: "var(--color-noir)" }}>
+                          Annuler
+                        </button>
+                        <button onClick={() => updatePartenaire(p.id)}
+                          disabled={savingEditP || uploadingEditPartImg || !editPartDraft.nom}
+                          className="flex-1 py-2.5 rounded-xl text-sm font-bold disabled:opacity-40"
+                          style={{ backgroundColor: "var(--color-orange)", color: "#fff" }}>
+                          {savingEditP ? "Enregistrement…" : "Enregistrer ✓"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
