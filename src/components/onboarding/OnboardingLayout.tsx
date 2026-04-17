@@ -1,7 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-
 interface Props {
   step: number;
   total: number;
@@ -9,16 +7,17 @@ interface Props {
   onNext: () => void;
   nextLabel?: string;
   nextDisabled?: boolean;
+  loading?: boolean;
+  error?: string;
   children: React.ReactNode;
 }
 
 export default function OnboardingLayout({
-  step,
-  total,
-  onBack,
-  onNext,
+  step, total, onBack, onNext,
   nextLabel = "Suivant",
   nextDisabled = false,
+  loading = false,
+  error = "",
   children,
 }: Props) {
   return (
@@ -51,9 +50,7 @@ export default function OnboardingLayout({
           <div
             key={i}
             className="h-1.5 flex-1 rounded-full transition-all duration-300"
-            style={{
-              backgroundColor: i < step ? "var(--color-rose)" : "#d1d5db",
-            }}
+            style={{ backgroundColor: i < step ? "var(--color-rose)" : "#d1d5db" }}
           />
         ))}
         <span className="ml-2 text-xs font-medium opacity-40 shrink-0">
@@ -62,27 +59,47 @@ export default function OnboardingLayout({
       </div>
 
       {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto pb-28 px-4">{children}</div>
+      <div className="flex-1 overflow-y-auto pb-36 px-4">{children}</div>
 
-      {/* Sticky bottom button */}
+      {/* Sticky bottom */}
       <div
         className="fixed bottom-0 left-0 right-0 px-4 pb-6 pt-3"
         style={{ backgroundColor: "var(--color-blanc)" }}
       >
         <div className="max-w-2xl mx-auto">
+          {/* Message d'erreur */}
+          {error && (
+            <p
+              className="text-xs text-center mb-3 px-2 py-2 rounded-xl"
+              style={{ backgroundColor: "#fff0f0", color: "var(--color-orange)" }}
+            >
+              {error}
+            </p>
+          )}
+
           <button
             onClick={onNext}
-            disabled={nextDisabled}
-            className="w-full py-4 rounded-full text-base font-bold transition-opacity flex items-center justify-center gap-2"
+            disabled={nextDisabled || loading}
+            className="w-full py-4 rounded-full text-base font-bold flex items-center justify-center gap-2 transition-opacity"
             style={{
               backgroundColor: "var(--color-rose)",
               color: "var(--color-blanc)",
-              opacity: nextDisabled ? 0.5 : 1,
+              opacity: nextDisabled || loading ? 0.5 : 1,
             }}
           >
-            {nextLabel}
-            {nextLabel === "Suivant" && (
-              <span aria-hidden="true">→</span>
+            {loading ? (
+              <>
+                <span
+                  className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+                  aria-hidden="true"
+                />
+                Enregistrement…
+              </>
+            ) : (
+              <>
+                {nextLabel}
+                {nextLabel === "Suivant" && <span aria-hidden="true">→</span>}
+              </>
             )}
           </button>
         </div>
