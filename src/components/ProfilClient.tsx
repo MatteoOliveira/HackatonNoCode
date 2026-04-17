@@ -232,7 +232,7 @@ export default function ProfilClient() {
                 .select("id, horodatage, palier_debloque, atelier:atelier_id(titre, lieu, code_stand, horaire_debut)")
                 .eq("inscription_id", inscription.id)
                 .order("horodatage", { ascending: false });
-              if (ckData) setCheckins(ckData as Checkin[]);
+              if (ckData) setCheckins(ckData as unknown as Checkin[]);
             }
 
             // Inscriptions aux ateliers
@@ -241,7 +241,7 @@ export default function ProfilClient() {
               .select("id, created_at, atelier:atelier_id(id, titre, lieu, horaire_debut, horaire_fin, code_stand)")
               .eq("user_id", user.id)
               .order("created_at", { ascending: false });
-            if (regData) setRegistrations(regData as Registration[]);
+            if (regData) setRegistrations(regData as unknown as Registration[]);
 
             setLoaded(true);
             return;

@@ -24,7 +24,7 @@ export default async function ProgrammePage() {
       `)
       .eq("actif", true)
       .order("horaire_debut");
-    if (data) ateliers = data as AtelierCard[];
+    if (data) ateliers = data as unknown as AtelierCard[];
   } catch {}
 
   return (

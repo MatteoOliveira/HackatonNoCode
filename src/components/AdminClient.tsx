@@ -128,7 +128,7 @@ export default function AdminClient() {
     supabase.from("ateliers")
       .select("id, titre, description, horaire_debut, horaire_fin, lieu, capacite_max, code_stand, actif, sport_id, association_id, sport:sport_id(nom), association:association_id(nom)")
       .order("horaire_debut")
-      .then(({ data }) => data && setAteliers(data as Atelier[]));
+      .then(({ data }) => data && setAteliers(data as unknown as Atelier[]));
 
     supabase.from("sports").select("id, nom").order("nom")
       .then(({ data }) => data && setSports(data));
@@ -140,7 +140,7 @@ export default function AdminClient() {
       .select("id, pseudo, email, role, created_at")
       .order("created_at", { ascending: false })
       .limit(100)
-      .then(({ data }) => data && setUsers(data as UserProfile[]));
+      .then(({ data }) => data && setUsers(data as unknown as UserProfile[]));
 
     supabase.from("config").select("key, value")
       .in("key", ["date_festival", "lieu_festival", "festival_actif"])
@@ -186,7 +186,7 @@ export default function AdminClient() {
       .from("atelier_registrations")
       .select("user_id, profile:user_id(pseudo, email)")
       .eq("atelier_id", atelierId);
-    const users = (data ?? []).map((r: { profile: { pseudo?: string; email?: string } | null }) => r.profile ?? {});
+    const users = (data ?? []).map((r: { profile: unknown }) => (Array.isArray((r as { profile: unknown }).profile) ? ((r as { profile: unknown[] }).profile[0] ?? {}) : (r as { profile: unknown }).profile ?? {}) as { pseudo?: string; email?: string });
     setInscritsByAtelier((prev) => ({ ...prev, [atelierId]: { count: users.length, users } }));
   }
 
@@ -222,7 +222,7 @@ export default function AdminClient() {
     const { data } = await supabase.from("ateliers")
       .select("id, titre, description, horaire_debut, horaire_fin, lieu, capacite_max, code_stand, actif, sport_id, association_id, sport:sport_id(nom), association:association_id(nom)")
       .order("horaire_debut");
-    if (data) setAteliers(data as Atelier[]);
+    if (data) setAteliers(data as unknown as Atelier[]);
     setNewA({ titre: "", description: "", quote: "", tags: "", image_url: "", horaire_debut: "", horaire_fin: "", lieu: "", capacite_max: 30, code_stand: "", sport_id: "", association_id: "", actif: true });
     setImageFile(null); setImagePreview("");
     setShowAddA(false); setSavingA(false);
